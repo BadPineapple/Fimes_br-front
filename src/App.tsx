@@ -10,6 +10,9 @@ import Filmes from "./pages/Filmes";
 import FilmeDetalhe from "./pages/FilmeDetalhe";
 import Indicacao from "./pages/Indicacao";
 import Apoio from "./pages/Apoio";
+import Entrar from "./pages/Entrar";
+import Registrar from "./pages/Registrar";
+import Perfil from "./pages/Perfil";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +31,9 @@ const App = () => (
             <Route path="/filme/:id" element={<FilmeDetalhe />} />
             <Route path="/indicacao" element={<Indicacao />} />
             <Route path="/apoio" element={<Apoio />} />
+            <Route path="/entrar" element={<Entrar />} />
+            <Route path="/registrar" element={<Registrar />} />
+            <Route path="/perfil" element={<Perfil />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

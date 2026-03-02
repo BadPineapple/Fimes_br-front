@@ -1,10 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
-import { Film, Search, Heart, Sparkles, LogIn, Menu, X } from "lucide-react";
+import { Film, Search, Heart, Sparkles, LogIn, Menu, X, User } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const Navbar = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { isAuthenticated, user } = useAuth();
 
   const links = [
     { to: "/", label: "Home", icon: <Film className="w-4 h-4" /> },
@@ -14,6 +17,13 @@ const Navbar = () => {
   ];
 
   const isActive = (path: string) => location.pathname === path;
+
+  const initials = user?.nome
+    ?.split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase() ?? "U";
 
   return (
     <nav className="sticky top-0 z-50 gradient-hero border-b border-primary/20 backdrop-blur-sm">
@@ -44,13 +54,27 @@ const Navbar = () => {
         </div>
 
         <div className="hidden md:flex">
-          <Link
-            to="/entrar"
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
-          >
-            <LogIn className="w-4 h-4" />
-            Entrar
-          </Link>
+          {isAuthenticated ? (
+            <Link
+              to="/perfil"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-primary-foreground/10 transition-colors"
+            >
+              <Avatar className="w-8 h-8">
+                <AvatarFallback className="text-xs bg-secondary text-secondary-foreground font-semibold">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-sm font-medium text-primary-foreground">{user?.nome?.split(" ")[0]}</span>
+            </Link>
+          ) : (
+            <Link
+              to="/entrar"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+            >
+              <LogIn className="w-4 h-4" />
+              Entrar
+            </Link>
+          )}
         </div>
 
         {/* Mobile toggle */}
@@ -80,14 +104,25 @@ const Navbar = () => {
               {link.label}
             </Link>
           ))}
-          <Link
-            to="/entrar"
-            onClick={() => setMobileOpen(false)}
-            className="flex items-center gap-2 px-4 py-3 rounded-lg bg-secondary text-secondary-foreground text-sm font-semibold"
-          >
-            <LogIn className="w-4 h-4" />
-            Entrar
-          </Link>
+          {isAuthenticated ? (
+            <Link
+              to="/perfil"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-2 px-4 py-3 rounded-lg bg-secondary/20 text-primary-foreground text-sm font-semibold"
+            >
+              <User className="w-4 h-4" />
+              Meu Perfil
+            </Link>
+          ) : (
+            <Link
+              to="/entrar"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-2 px-4 py-3 rounded-lg bg-secondary text-secondary-foreground text-sm font-semibold"
+            >
+              <LogIn className="w-4 h-4" />
+              Entrar
+            </Link>
+          )}
         </div>
       )}
     </nav>

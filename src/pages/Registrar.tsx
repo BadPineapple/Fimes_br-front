@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Film, Mail, Lock, Eye, EyeOff, ArrowRight, User, Phone, KeyRound, Check, X } from "lucide-react";
+import { Film, Mail, Lock, Eye, EyeOff, ArrowRight, User, Phone, KeyRound, Check, X, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import api from "@/services/api";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 interface PasswordStrength {
   score: number;
@@ -49,6 +50,9 @@ const Registrar = () => {
   const [telefone, setTelefone] = useState("");
   const [aceitaTermos, setAceitaTermos] = useState(false);
   const [aceitaPropagandas, setAceitaPropagandas] = useState(false);
+  const [isRobotVerified, setIsRobotVerified] = useState(false);
+  const [isVerifyingRobot, setIsVerifyingRobot] = useState(false);
+
   const [code, setCode] = useState("");
 
   const strength = getPasswordStrength(senha);
@@ -56,43 +60,73 @@ const Registrar = () => {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nome || !email || !senha || !confirmarSenha) {
-      toast.error("Preencha todos os campos obrigatórios");
+    
+    if (!isRobotVerified) {
+      toast.error("Por favor, confirme que não é um robô!");
       return;
     }
+    
     if (senha !== confirmarSenha) {
-      toast.error("As senhas não coincidem");
+      toast.error("As senhas não coincidem!");
       return;
     }
-    if (strength.score < 3) {
-      toast.error("A senha precisa ser pelo menos razoável");
+    if (strength.score < 4) {
+      toast.error("A senha não é forte o suficiente!");
       return;
     }
-    if (!aceitaTermos) {
-      toast.error("Você precisa aceitar os termos de serviço");
-      return;
-    }
+
     setLoading(true);
-    // Mock: api.post('/auth/register', { nome, email, senha, telefone, aceitaPropagandas })
-    setTimeout(() => {
+    try {
+      // Chamada real ao backend
+      await api.post('/auth/registrar', {
+        nome,
+        email,
+        telefone,
+        senha,
+        propaganda: aceitaTermos
+      });
+
+      toast.success("Conta criada! Verifique o seu e-mail.");
+      //setStep(2); // Avança para a etapa de verificação
+    } catch (error: any) {
+      toast.error(error.response?.data?.erro || "Erro ao registar utilizador.");
+    } finally {
       setLoading(false);
-      setStep("verify");
-      toast.success("Código de verificação enviado para seu e-mail!");
-    }, 1200);
+    }
   };
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!code || code.length < 6) {
-      toast.error("Informe o código de 6 dígitos");
+    if (code.length !== 6) {
+      toast.error("Código inválido!");
       return;
     }
+
     setLoading(true);
-    // Mock: api.post('/auth/verify-email', { email, code })
-    setTimeout(() => {
+    try {
+      // Envia o código digitado para o backend validar
+      await api.post('/auth/verificar-email', {
+        email,
+        codigo: code
+      });
+
+      toast.success("E-mail verificado com sucesso!");
+      navigate("/entrar"); // Redireciona para o login
+    } catch (error: any) {
+      toast.error(error.response?.data?.erro || "Código de verificação incorreto.");
+    } finally {
       setLoading(false);
-      toast.success("Conta criada com sucesso! Faça login para continuar.");
-      navigate("/entrar");
+    }
+  };
+
+  // NOVA FUNÇÃO: Simula a verificação do reCAPTCHA
+  const handleRobotCheck = () => {
+    if (isRobotVerified) return;
+    setIsVerifyingRobot(true);
+    // Simula um delay de rede de 1 segundo
+    setTimeout(() => {
+      setIsVerifyingRobot(false);
+      setIsRobotVerified(true);
     }, 1000);
   };
 
@@ -264,6 +298,34 @@ const Registrar = () => {
                       value={telefone}
                       onChange={(e) => setTelefone(formatPhone(e.target.value))}
                     />
+                  </div>
+                </div>
+
+                <div className="flex justify-center py-2">
+                  <div 
+                    onClick={handleRobotCheck}
+                    className={`flex items-center justify-between w-[300px] p-3 border rounded-sm cursor-pointer transition-all ${
+                    isRobotVerified ? 'border-green-300 bg-green-50/30' : 'border-gray-300 bg-gray-50/50 hover:bg-gray-100'
+                    }`}>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-7 h-7 flex items-center justify-center rounded-sm border-2 transition-colors ${
+                        isRobotVerified ? 'border-green-600 bg-green-600' : 'border-gray-400 bg-white'
+                      }`}>
+                        {isVerifyingRobot ? (
+                           <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                        ) : isRobotVerified ? (
+                          <Check className="w-5 h-5 text-white" />
+                        ) : null}
+                      </div>
+                      <span className="text-sm font-medium text-gray-700">Não sou um robô</span>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      {/* Um ícone genérico de escudo para simular o logo de segurança */}
+                      <div className="w-8 h-8 opacity-60 flex items-center justify-center">
+                        <ShieldCheck className="w-6 h-6 text-blue-600" /> 
+                      </div>
+                      <span className="text-[10px] text-gray-400 mt-1">Privacidade - Termos</span>
+                    </div>
                   </div>
                 </div>
 

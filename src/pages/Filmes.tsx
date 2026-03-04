@@ -1,19 +1,83 @@
-import { useState, useMemo } from "react";
-import { Search, X } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { Search, X, Loader2 } from "lucide-react";
 import FilmCard from "@/components/FilmCard";
-import { filmesData, allGeneros } from "@/data/filmes";
+import api from "@/services/api";
 
 const Filmes = () => {
+  // 1. Estados dinâmicos vindos do banco de dados
+  const [filmes, setFilmes] = useState<any[]>([]);
+  const [generos, setGeneros] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState("");
+
+  // 2. Estados de Filtro
   const [busca, setBusca] = useState("");
   const [generoFiltro, setGeneroFiltro] = useState<string | null>(null);
 
+  // 3. Buscar os dados na API ao montar o componente
+  useEffect(() => {
+    const carregarDados = async () => {
+      try {
+        setLoading(true);
+        // Busca filmes e gêneros simultaneamente para maior rapidez
+        const [resFilmes, resGeneros] = await Promise.all([
+          api.get("/filmes"),
+          api.get("/generos") // Certifique-se de que tem uma rota GET /generos no backend
+        ]);
+
+        setFilmes(resFilmes.data);
+        setGeneros(resGeneros.data);
+      } catch (err) {
+        console.error("Erro ao carregar dados:", err);
+        setErro("Não foi possível carregar o catálogo de filmes.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    carregarDados();
+  }, []);
+
+  // 4. Lógica de filtragem com base nos dados do backend
   const filmesFiltrados = useMemo(() => {
-    return filmesData.filter((f) => {
-      const matchBusca = f.titulo.toLowerCase().includes(busca.toLowerCase());
-      const matchGenero = !generoFiltro || f.genero.includes(generoFiltro);
+    return filmes.filter((f) => {
+      const matchBusca = f.titulo?.toLowerCase().includes(busca.toLowerCase());
+      
+      // Converte os gêneros para array, prevenindo erros caso o backend devolva uma string separada por vírgulas
+      const listaGeneros = Array.isArray(f.genero) 
+        ? f.genero 
+        : (typeof f.genero === 'string' ? f.genero.split(',') : []);
+
+      // Verifica se o filme contém o gênero selecionado
+      const matchGenero = !generoFiltro || listaGeneros.some((g: string) => g.trim() === generoFiltro);
+      
       return matchBusca && matchGenero;
     });
-  }, [busca, generoFiltro]);
+  }, [busca, generoFiltro, filmes]);
+
+  // Telas de Carregamento e Erro
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+        <span className="ml-3 text-lg font-medium text-muted-foreground">Carregando catálogo...</span>
+      </div>
+    );
+  }
+
+  if (erro) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center text-center p-4">
+        <p className="text-red-500 font-bold mb-4">{erro}</p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen py-10">
@@ -44,8 +108,8 @@ const Filmes = () => {
               className="px-3 py-2.5 rounded-lg border border-primary bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value="">Todos os gêneros</option>
-              {allGeneros.map((g) => (
-                <option key={g} value={g}>{g}</option>
+              {generos.map((g) => (
+                <option key={g.id} value={g.genero}>{g.genero}</option>
               ))}
             </select>
           </div>

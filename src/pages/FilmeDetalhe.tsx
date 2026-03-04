@@ -1,26 +1,69 @@
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Star, Film as FilmIcon, MessageSquare, ExternalLink } from "lucide-react";
-import { filmesData } from "@/data/filmes";
+import { ArrowLeft, Star, Film as FilmIcon, MessageSquare, ExternalLink, Loader2 } from "lucide-react";
 import GenreBadge from "@/components/GenreBadge";
 import StarRating from "@/components/StarRating";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import api from "@/services/api";
 
 const FilmeDetalhe = () => {
   const { id } = useParams();
-  const filme = filmesData.find((f) => f.id === Number(id));
+  
+  // Estados vindos do Banco de Dados
+  const [filme, setFilme] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState("");
+
+  // Estados do Formulário de Avaliação
   const [userRating, setUserRating] = useState(0);
   const [comentario, setComentario] = useState("");
 
-  if (!filme) {
+  // Busca os dados do filme na API assim que a página carrega
+  useEffect(() => {
+    const carregarFilme = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get(`/filmes/${id}`);
+        setFilme(response.data);
+      } catch (err) {
+        console.error("Erro ao carregar detalhes do filme:", err);
+        setErro("Não foi possível carregar as informações do filme.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    carregarFilme();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+        <span className="ml-3 text-lg font-medium text-muted-foreground">Carregando detalhes...</span>
+      </div>
+    );
+  }
+
+  if (erro || !filme) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
-          <p className="text-lg text-muted-foreground">Filme não encontrado</p>
-          <Link to="/filmes" className="text-primary hover:underline">Voltar para filmes</Link>
+          <p className="text-lg text-red-500 font-medium">{erro || "Filme não encontrado"}</p>
+          <Link to="/filmes" className="text-primary hover:underline font-semibold">Voltar para o catálogo</Link>
         </div>
       </div>
     );
   }
+
+  // Tratamento de dados caso o backend retorne strings separadas por vírgula em vez de arrays
+  const listaGeneros = Array.isArray(filme.genero) 
+    ? filme.genero 
+    : (typeof filme.genero === 'string' ? filme.genero.split(',') : []);
+    
+  // Como alterámos onde_assistir para as plataformas do banco
+  const listaPlataformas = Array.isArray(filme.plataforma)
+    ? filme.plataforma
+    : (typeof filme.plataforma === 'string' ? filme.plataforma.split(',') : []);
 
   return (
     <div className="min-h-screen py-8">
@@ -33,12 +76,13 @@ const FilmeDetalhe = () => {
           Voltar para filmes
         </Link>
 
-        {/* Film details */}
+        {/* Detalhes do Filme */}
         <div className="grid md:grid-cols-[350px_1fr] gap-8 mb-12">
           {/* Poster */}
           <div className="aspect-[2/3] rounded-xl overflow-hidden gradient-card flex items-center justify-center shadow-card">
-            {filme.imagem_capa ? (
-              <img src={filme.imagem_capa} alt={filme.titulo} className="w-full h-full object-cover" />
+            {/* Alterado de imagem_capa para imagens */}
+            {filme.imagens ? (
+              <img src={filme.imagens} alt={filme.titulo} className="w-full h-full object-cover" />
             ) : (
               <FilmIcon className="w-20 h-20 text-primary/25" />
             )}
@@ -61,30 +105,26 @@ const FilmeDetalhe = () => {
               </h1>
             </div>
 
-            {/* Ratings */}
+            {/* Avaliações */}
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-1.5">
-                <span className="font-semibold text-foreground">IMDB:</span>
+                <span className="font-semibold text-foreground">Geral:</span>
                 <Star className="w-4 h-4 fill-secondary text-secondary" />
-                <span className="font-medium">{filme.nota}/10</span>
+                {/* Alterado de nota para nota_externa */}
+                <span className="font-medium">{filme.nota_externa || "N/A"}/10</span>
               </div>
-              {filme.nota_letterboxd && (
-                <div className="flex items-center gap-1.5">
-                  <span className="font-semibold text-foreground">Letterboxd:</span>
-                  <Star className="w-4 h-4 fill-secondary text-secondary" />
-                  <span className="font-medium">{filme.nota_letterboxd}/5</span>
-                </div>
-              )}
             </div>
 
-            {/* Genres */}
-            <div className="flex flex-wrap gap-2">
-              {filme.genero.map((g) => (
-                <GenreBadge key={g} genre={g} />
-              ))}
-            </div>
+            {/* Géneros */}
+            {listaGeneros.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {listaGeneros.map((g: string) => (
+                  <GenreBadge key={g.trim()} genre={g.trim()} />
+                ))}
+              </div>
+            )}
 
-            {/* Synopsis */}
+            {/* Sinopse */}
             {filme.sinopse && (
               <div>
                 <h2 className="font-display text-xl font-semibold text-primary mb-2">Sinopse</h2>
@@ -92,18 +132,18 @@ const FilmeDetalhe = () => {
               </div>
             )}
 
-            {/* Where to watch */}
-            {filme.onde_assistir && filme.onde_assistir.length > 0 && (
+            {/* Onde Assistir (Plataformas) */}
+            {listaPlataformas.length > 0 && (
               <div>
                 <h2 className="font-display text-xl font-semibold text-foreground mb-3">Onde Assistir</h2>
                 <div className="flex flex-wrap gap-2">
-                  {filme.onde_assistir.map((plat) => (
+                  {listaPlataformas.map((plat: string) => (
                     <span
-                      key={plat}
+                      key={plat.trim()}
                       className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-input bg-background text-foreground text-sm font-medium hover:bg-muted transition-colors cursor-pointer"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
-                      {plat}
+                      {plat.trim()}
                     </span>
                   ))}
                 </div>
@@ -112,9 +152,9 @@ const FilmeDetalhe = () => {
           </div>
         </div>
 
-        {/* Reviews */}
+        {/* Seção de Comentários */}
         <div className="grid md:grid-cols-2 gap-6">
-          {/* User review */}
+          {/* Avaliação do Utilizador */}
           <div className="rounded-xl border border-border bg-card p-6 shadow-card">
             <h3 className="font-display text-lg font-semibold text-primary mb-4">Sua Avaliação</h3>
             <div className="space-y-4">
@@ -135,13 +175,16 @@ const FilmeDetalhe = () => {
                   className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none h-28"
                 />
               </div>
-              <button className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity">
+              <button 
+                onClick={() => alert("Função de salvar comentário a ser integrada com o backend!")}
+                className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity"
+              >
                 Salvar Avaliação
               </button>
             </div>
           </div>
 
-          {/* Community reviews */}
+          {/* Avaliações da Comunidade (Placeholder) */}
           <div className="rounded-xl border border-border bg-card p-6 shadow-card">
             <h3 className="font-display text-lg font-semibold text-primary mb-4">
               Avaliações da Comunidade (0)

@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { filmesData } from "@/data/filmes";
 
 const Perfil = () => {
   const { user, logout } = useAuth();

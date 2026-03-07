@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Sparkles, Send, Film as FilmIcon } from "lucide-react";
 import FilmCard from "@/components/FilmCard";
+import { Filme, filmesData } from "@/data/filmes";
 
 const Indicacao = () => {
   const [pergunta, setPergunta] = useState("");

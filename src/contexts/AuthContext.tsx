@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, _senha: string) => {
     // Mock login - replace with api.post('/login', { email, senha })
-    const mockUser: User = { id: 1, nome: 'Usuário', email, roles: ['user'] };
+    const mockUser: User = { id: 1, nome: 'Usuário', email, roles: ['user', 'admin'] };
     const mockToken = 'mock-jwt-token';
     localStorage.setItem('token', mockToken);
     localStorage.setItem('user', JSON.stringify(mockUser));

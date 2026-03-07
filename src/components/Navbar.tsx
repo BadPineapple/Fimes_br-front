@@ -1,13 +1,21 @@
-import { Link, useLocation } from "react-router-dom";
-import { Film, Search, Heart, Sparkles, LogIn, Menu, X, User, Shield } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Film, Search, Heart, Sparkles, LogIn, Menu, X, Shield, User, Settings, List, LogOut } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { isAuthenticated, user, isAdmin, isModerator } = useAuth();
+  const { isAuthenticated, user, isAdmin, isModerator, logout } = useAuth();
 
   const links = [
     { to: "/", label: "Home", icon: <Film className="w-4 h-4" /> },
@@ -24,6 +32,11 @@ const Navbar = () => {
     .join("")
     .slice(0, 2)
     .toUpperCase() ?? "U";
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
 
   return (
     <nav className="sticky top-0 z-50 gradient-hero border-b border-primary/20 backdrop-blur-sm">
@@ -64,17 +77,33 @@ const Navbar = () => {
             </Link>
           )}
           {isAuthenticated ? (
-            <Link
-              to="/perfil"
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-primary-foreground/10 transition-colors"
-            >
-              <Avatar className="w-8 h-8">
-                <AvatarFallback className="text-xs bg-secondary text-secondary-foreground font-semibold">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-sm font-medium text-primary-foreground">{user?.nome?.split(" ")[0]}</span>
-            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-primary-foreground/10 transition-colors">
+                  <Avatar className="w-8 h-8">
+                    <AvatarFallback className="text-xs bg-secondary text-secondary-foreground font-semibold">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm font-medium text-primary-foreground">{user?.nome?.split(" ")[0]}</span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => navigate("/perfil")}>
+                  <User className="w-4 h-4 mr-2" /> Perfil
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/perfil")}>
+                  <Settings className="w-4 h-4 mr-2" /> Configurações
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/perfil")}>
+                  <List className="w-4 h-4 mr-2" /> Minhas Listas
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+                  <LogOut className="w-4 h-4 mr-2" /> Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <Link
               to="/entrar"
@@ -124,14 +153,21 @@ const Navbar = () => {
             </Link>
           )}
           {isAuthenticated ? (
-            <Link
-              to="/perfil"
-              onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-2 px-4 py-3 rounded-lg bg-secondary/20 text-primary-foreground text-sm font-semibold"
-            >
-              <User className="w-4 h-4" />
-              Meu Perfil
-            </Link>
+            <>
+              <Link
+                to="/perfil"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-2 px-4 py-3 rounded-lg text-primary-foreground text-sm font-medium"
+              >
+                <User className="w-4 h-4" /> Perfil
+              </Link>
+              <button
+                onClick={() => { handleLogout(); setMobileOpen(false); }}
+                className="flex items-center gap-2 px-4 py-3 rounded-lg text-destructive text-sm font-medium w-full"
+              >
+                <LogOut className="w-4 h-4" /> Sair
+              </button>
+            </>
           ) : (
             <Link
               to="/entrar"

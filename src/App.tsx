@@ -32,26 +32,31 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Navbar />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/filmes" element={<Filmes />} />
-            <Route path="/filme/:id" element={<FilmeDetalhe />} />
-            <Route path="/indicacao" element={<Indicacao />} />
-            <Route path="/apoio" element={<Apoio />} />
-            <Route path="/entrar" element={<Entrar />} />
-            <Route path="/registrar" element={<Registrar />} />
-            <Route path="/perfil" element={<Perfil />} />
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<AdminDashboard />} />
-              <Route path="filmes" element={<AdminFilmes />} />
-              <Route path="usuarios" element={<AdminUsuarios />} />
-              <Route path="denuncias" element={<AdminDenuncias />} />
-              <Route path="metricas" element={<AdminMetricas />} />
-              <Route path="configuracoes" element={<AdminConfiguracoes />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <div className="flex-1">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/filmes" element={<Filmes />} />
+                <Route path="/filme/:id" element={<FilmeDetalhe />} />
+                <Route path="/indicacao" element={<Indicacao />} />
+                <Route path="/apoio" element={<Apoio />} />
+                <Route path="/entrar" element={<Entrar />} />
+                <Route path="/registrar" element={<Registrar />} />
+                <Route path="/perfil" element={<Perfil />} />
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="filmes" element={<AdminFilmes />} />
+                  <Route path="usuarios" element={<AdminUsuarios />} />
+                  <Route path="denuncias" element={<AdminDenuncias />} />
+                  <Route path="metricas" element={<AdminMetricas />} />
+                  <Route path="configuracoes" element={<AdminConfiguracoes />} />
+                </Route>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </div>
+            <Footer />
+          </div>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>

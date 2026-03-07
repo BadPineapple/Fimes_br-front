@@ -59,12 +59,12 @@ const Perfil = () => {
   return (
     <main className="min-h-[calc(100vh-4rem)]">
       {/* Hero banner */}
-      <div className="gradient-hero h-36 sm:h-48" />
+      <div className="gradient-hero h-40 sm:h-52" />
 
       <div className="container mx-auto px-4 -mt-16 sm:-mt-20 pb-12">
         {/* Profile header */}
-        <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 mb-8">
-          <div className="relative">
+        <div className="flex flex-col items-center text-center mb-8">
+          <div className="relative mb-4">
             <Avatar className="w-28 h-28 sm:w-32 sm:h-32 border-4 border-background shadow-card">
               <AvatarImage src="" />
               <AvatarFallback className="text-2xl font-display bg-primary text-primary-foreground">
@@ -76,44 +76,32 @@ const Perfil = () => {
             </button>
           </div>
 
-          <div className="flex-1 text-center sm:text-left">
-            {editing ? (
-              <div className="space-y-2 max-w-sm">
-                <Label>Nome</Label>
-                <Input value={nome} onChange={(e) => setNome(e.target.value)} maxLength={100} />
-                <Label>Descrição</Label>
-                <Textarea
-                  value={descricao}
-                  onChange={(e) => setDescricao(e.target.value)}
-                  maxLength={200}
-                  rows={2}
-                />
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={handleSave}>Salvar</Button>
-                  <Button size="sm" variant="outline" onClick={() => setEditing(false)}>Cancelar</Button>
-                </div>
+          {editing ? (
+            <div className="space-y-2 max-w-sm w-full text-left">
+              <Label>Nome</Label>
+              <Input value={nome} onChange={(e) => setNome(e.target.value)} maxLength={100} />
+              <Label>Descrição</Label>
+              <Textarea
+                value={descricao}
+                onChange={(e) => setDescricao(e.target.value)}
+                maxLength={200}
+                rows={2}
+              />
+              <div className="flex gap-2 justify-center">
+                <Button size="sm" onClick={handleSave}>Salvar</Button>
+                <Button size="sm" variant="outline" onClick={() => setEditing(false)}>Cancelar</Button>
               </div>
-            ) : (
-              <>
-                <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground">{nome}</h1>
-                <p className="text-muted-foreground mt-1">{descricao}</p>
-                <p className="text-sm text-muted-foreground mt-0.5">{user.email}</p>
-              </>
-            )}
-          </div>
-
-          <div className="flex gap-2">
-            {!editing && (
-              <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
-                <Edit2 className="w-4 h-4" />
-                Editar
+            </div>
+          ) : (
+            <>
+              <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground">{nome}</h1>
+              <p className="text-muted-foreground mt-1 max-w-md">{descricao}</p>
+              <Button variant="ghost" size="sm" className="mt-2 text-muted-foreground" onClick={() => setEditing(true)}>
+                <Edit2 className="w-3.5 h-3.5 mr-1" />
+                Editar perfil
               </Button>
-            )}
-            <Button variant="ghost" size="sm" onClick={handleLogout} className="text-destructive hover:text-destructive">
-              <LogOut className="w-4 h-4" />
-              Sair
-            </Button>
-          </div>
+            </>
+          )}
         </div>
 
         {/* Stats */}

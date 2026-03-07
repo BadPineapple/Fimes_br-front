@@ -66,7 +66,7 @@ const Home = () => {
   return (
     <div className="min-h-screen">
       {/* Hero */}
-      <section className="gradient-hero text-primary-foreground h-[280px] md:h-[340px] relative overflow-hidden flex items-center">
+      <section className="gradient-hero text-primary-foreground h-[350px] relative overflow-hidden flex items-center">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-10 left-10 w-64 h-64 rounded-full bg-secondary blur-3xl" />
           <div className="absolute bottom-10 right-10 w-96 h-96 rounded-full bg-secondary/50 blur-3xl" />

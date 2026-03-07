@@ -254,7 +254,7 @@ const Perfil = () => {
                     </Button>
                   </div>
                 </div>
-              )
+              )}
             </CardContent>
           </Card>
         </div>

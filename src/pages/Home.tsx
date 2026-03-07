@@ -2,11 +2,30 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Film, Star, Clapperboard, Loader2 } from "lucide-react";
 import FilmCard from "@/components/FilmCard";
-import api from "@/services/api"; // Importando a conexão com o backend
+import api from "@/services/api";
+
+const banners = [
+  {
+    titulo: "Descubra o melhor do",
+    destaque: "cinema brasileiro",
+    descricao: "Explore nossa curadoria especial do cinema nacional. De clássicos atemporais a obras contemporâneas.",
+  },
+  {
+    titulo: "Encontre seu próximo",
+    destaque: "filme favorito",
+    descricao: "Use nossa indicação inteligente e descubra filmes que combinam com seu gosto pessoal.",
+  },
+  {
+    titulo: "Apoie o",
+    destaque: "cinema nacional",
+    descricao: "Cada visualização conta. Ajude a fortalecer a indústria cinematográfica brasileira.",
+  },
+];
 
 const Home = () => {
   const [filmes, setFilmes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [bannerIndex, setBannerIndex] = useState(0);
 
   useEffect(() => {
     const carregarDestaques = async () => {
@@ -19,14 +38,17 @@ const Home = () => {
         setLoading(false);
       }
     };
-
     carregarDestaques();
   }, []);
 
-  // Pega os 6 primeiros filmes retornados do banco para os destaques
-  const destaques = filmes.slice(0, 6);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setBannerIndex((prev) => (prev + 1) % banners.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
 
-  // Calcula a nota média com base nos filmes retornados da base de dados
+  const destaques = filmes.slice(0, 6);
   const notaMedia = filmes.length > 0
     ? (filmes.reduce((acc, f) => acc + (Number(f.nota_externa) || 0), 0) / filmes.length).toFixed(1)
     : "0.0";
@@ -39,25 +61,27 @@ const Home = () => {
     );
   }
 
+  const banner = banners[bannerIndex];
+
   return (
     <div className="min-h-screen">
       {/* Hero */}
-      <section className="gradient-hero text-primary-foreground py-20 md:py-32 relative overflow-hidden">
+      <section className="gradient-hero text-primary-foreground py-14 md:py-20 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-10 left-10 w-64 h-64 rounded-full bg-secondary blur-3xl" />
           <div className="absolute bottom-10 right-10 w-96 h-96 rounded-full bg-secondary/50 blur-3xl" />
         </div>
         <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-2xl space-y-6">
+          <div className="max-w-2xl space-y-5 transition-opacity duration-500" key={bannerIndex}>
             <div className="flex items-center gap-2 text-secondary">
               <Clapperboard className="w-5 h-5" />
               <span className="text-sm font-semibold uppercase tracking-wider">Cinema Nacional</span>
             </div>
-            <h1 className="font-display text-4xl md:text-6xl font-extrabold leading-tight">
-              Descubra o melhor do <span className="text-secondary">cinema brasileiro</span>
+            <h1 className="font-display text-3xl md:text-5xl font-extrabold leading-tight animate-fade-in">
+              {banner.titulo} <span className="text-secondary">{banner.destaque}</span>
             </h1>
-            <p className="text-lg text-primary-foreground/80 leading-relaxed">
-              Explore nossa curadoria especial do cinema nacional. De clássicos atemporais a obras contemporâneas que estão transformando a filmografia brasileira.
+            <p className="text-base text-primary-foreground/80 leading-relaxed animate-fade-in">
+              {banner.descricao}
             </p>
             <Link
               to="/filmes"
@@ -66,6 +90,16 @@ const Home = () => {
               Explorar Filmes
               <ArrowRight className="w-4 h-4" />
             </Link>
+          </div>
+          {/* Dots */}
+          <div className="flex gap-2 mt-6">
+            {banners.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setBannerIndex(i)}
+                className={`w-2.5 h-2.5 rounded-full transition-all ${i === bannerIndex ? "bg-secondary w-6" : "bg-primary-foreground/30"}`}
+              />
+            ))}
           </div>
         </div>
       </section>

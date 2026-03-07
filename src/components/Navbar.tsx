@@ -113,6 +113,16 @@ const Navbar = () => {
               {link.label}
             </Link>
           ))}
+          {(isAdmin || isModerator) && (
+            <Link
+              to="/admin"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-2 px-4 py-3 rounded-lg text-secondary text-sm font-semibold"
+            >
+              <Shield className="w-4 h-4" />
+              Backstage
+            </Link>
+          )}
           {isAuthenticated ? (
             <Link
               to="/perfil"

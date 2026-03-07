@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 const Navbar = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isAdmin, isModerator } = useAuth();
 
   const links = [
     { to: "/", label: "Home", icon: <Film className="w-4 h-4" /> },
@@ -53,7 +53,16 @@ const Navbar = () => {
           ))}
         </div>
 
-        <div className="hidden md:flex">
+        <div className="hidden md:flex items-center gap-2">
+          {(isAdmin || isModerator) && (
+            <Link
+              to="/admin"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-secondary hover:bg-primary-foreground/10 transition-colors"
+            >
+              <Shield className="w-4 h-4" />
+              Backstage
+            </Link>
+          )}
           {isAuthenticated ? (
             <Link
               to="/perfil"

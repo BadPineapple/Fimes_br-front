@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Film, Search, Heart, Sparkles, LogIn, Menu, X, User } from "lucide-react";
+import { Film, Search, Heart, Sparkles, LogIn, Menu, X, User, Shield } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";

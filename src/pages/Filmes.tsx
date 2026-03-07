@@ -4,7 +4,7 @@ import FilmCard from "@/components/FilmCard";
 import api from "@/services/api";
 
 const Filmes = () => {
-  // 1. Estados dinâmicos vindos do banco de dados
+ // 1. Estados dinâmicos vindos do banco de dados
   const [filmes, setFilmes] = useState<any[]>([]);
   const [generos, setGeneros] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -12,21 +12,42 @@ const Filmes = () => {
 
   // 2. Estados de Filtro
   const [busca, setBusca] = useState("");
-  const [generoFiltro, setGeneroFiltro] = useState<string | null>(null);
+  const [generoFiltro, setGeneroFiltro] = useState("");
+  const [tagFiltro, setTagFiltro] = useState(""); 
+  const [plataformaFiltro, setPlataformaFiltro] = useState(""); 
+  const [pessoaFiltro, setPessoaFiltro] = useState(""); 
+  const [anoFiltro, setAnoFiltro] = useState("");
+  const [ordenarPor, setOrdenarPor] = useState("nome_asc");
 
   // 3. Buscar os dados na API ao montar o componente
   useEffect(() => {
     const carregarDados = async () => {
       try {
         setLoading(true);
-        // Busca filmes e gêneros simultaneamente para maior rapidez
-        const [resFilmes, resGeneros] = await Promise.all([
-          api.get("/filmes"),
-          api.get("/generos") // Certifique-se de que tem uma rota GET /generos no backend
+        
+        // Constrói os parâmetros dinâmicos para a API
+        const params = new URLSearchParams();
+        if (busca) params.append("titulo", busca);
+        if (generoFiltro) params.append("genero", generoFiltro);
+        if (tagFiltro) params.append("tag", tagFiltro);
+        if (plataformaFiltro) params.append("plataforma", plataformaFiltro);
+        if (pessoaFiltro) params.append("pessoa", pessoaFiltro);
+        if (anoFiltro) params.append("ano", anoFiltro);
+        if (ordenarPor) params.append("ordenarPor", ordenarPor);
+
+        const [resFilmes, resGeneros, resPlataformas, resPessoas, resTags] = await Promise.all([
+          api.get(`/filmes?${params.toString()}`),
+          api.get("/opcoes/generos"),
+          api.get("/opcoes/plataformas"),
+          api.get("/opcoes/pessoas"),
+          api.get("/opcoes/tags"),
         ]);
 
         setFilmes(resFilmes.data);
         setGeneros(resGeneros.data);
+        setGeneros(resPlataformas.data);
+        setGeneros(resPessoas.data);
+        setGeneros(resTags.data);
       } catch (err) {
         console.error("Erro ao carregar dados:", err);
         setErro("Não foi possível carregar o catálogo de filmes.");
@@ -35,13 +56,18 @@ const Filmes = () => {
       }
     };
 
-    carregarDados();
-  }, []);
+    // Debounce: Aguarda 500ms após o usuário parar de interagir antes de chamar a API
+    const timeoutId = setTimeout(() => {
+      carregarDados();
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [busca, generoFiltro, tagFiltro, plataformaFiltro, pessoaFiltro, anoFiltro, ordenarPor]);
 
   // 4. Lógica de filtragem com base nos dados do backend
   const filmesFiltrados = useMemo(() => {
     return filmes.filter((f) => {
-      const matchBusca = f.titulo?.toLowerCase().includes(busca.toLowerCase());
+      const matchBusca = f.NOMFIL?.toLowerCase().includes(busca.toLowerCase());
       
       // Converte os gêneros para array, prevenindo erros caso o backend devolva uma string separada por vírgulas
       const listaGeneros = Array.isArray(f.genero) 
@@ -87,54 +113,97 @@ const Filmes = () => {
         </h1>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Buscar filmes..."
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            />
+
+        {/* Filters & Sorting */}
+        <div className="flex flex-col gap-4 mb-8">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Buscar por nome..."
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                Ordenar:
+              </label>
+              <select
+                value={ordenarPor}
+                onChange={(e) => setOrdenarPor(e.target.value)}
+                className="px-3 py-2.5 rounded-lg border border-primary bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="nome_asc">Nome (A-Z)</option>
+                <option value="nome_desc">Nome (Z-A)</option>
+                <option value="nota_desc">Maior Nota</option>
+                <option value="nota_asc">Menor Nota</option>
+                <option value="ano_desc">Mais Recentes</option>
+                <option value="ano_asc">Mais Antigos</option>
+              </select>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <label className="text-sm font-medium text-muted-foreground whitespace-nowrap">
-              Filtrar por gênero:
-            </label>
+
+          {/* Grid de Filtros Avançados */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             <select
-              value={generoFiltro ?? ""}
-              onChange={(e) => setGeneroFiltro(e.target.value || null)}
-              className="px-3 py-2.5 rounded-lg border border-primary bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              value={generoFiltro}
+              onChange={(e) => setGeneroFiltro(e.target.value)}
+              className="px-3 py-2 rounded-lg border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             >
-              <option value="">Todos os gêneros</option>
+              <option value="">Gêneros (Todos)</option>
               {generos.map((g) => (
-                <option key={g.id} value={g.genero}>{g.genero}</option>
+                <option key={g.IDGEN} value={g.IDGEN}>{g.NOMGEN}</option>
               ))}
             </select>
+
+            <input
+              type="number"
+              placeholder="Ano de Lançamento"
+              value={anoFiltro}
+              onChange={(e) => setAnoFiltro(e.target.value)}
+              className="px-3 py-2 rounded-lg border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+
+            {/* NOTA: Para Tag, Plataforma e Pessoa, utilizei inputs de texto para receber o ID.
+                O ideal seria criar rotas no Backend para buscar essas listas e transformar em <select> iguais ao do Gênero. */}
+            <input
+              type="text"
+              placeholder="ID da Tag..."
+              value={tagFiltro}
+              onChange={(e) => setTagFiltro(e.target.value)}
+              className="px-3 py-2 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+             <input
+              type="text"
+              placeholder="ID da Plataforma..."
+              value={plataformaFiltro}
+              onChange={(e) => setPlataformaFiltro(e.target.value)}
+              className="px-3 py-2 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            <input
+              type="text"
+              placeholder="ID da Pessoa..."
+              value={pessoaFiltro}
+              onChange={(e) => setPessoaFiltro(e.target.value)}
+              className="px-3 py-2 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            />
           </div>
         </div>
 
-        {generoFiltro && (
-          <button
-            onClick={() => setGeneroFiltro(null)}
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6 hover:bg-primary/20 transition-colors"
-          >
-            Filtrando por: {generoFiltro}
-            <X className="w-3.5 h-3.5" />
-          </button>
-        )}
-
         {/* Results */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
-          {filmesFiltrados.map((filme, i) => (
-            <div key={filme.id} className="animate-fade-in" style={{ animationDelay: `${i * 60}ms` }}>
+          {filmes.map((filme, i) => (
+            <div key={filme.IDFIL} className="animate-fade-in" style={{ animationDelay: `${i * 60}ms` }}>
               <FilmCard filme={filme} />
             </div>
           ))}
         </div>
 
-        {filmesFiltrados.length === 0 && (
+        {filmes.length === 0 && (
           <div className="text-center py-20 text-muted-foreground">
             <p className="text-lg">Nenhum filme encontrado.</p>
             <p className="text-sm mt-1">Tente alterar os filtros de busca.</p>

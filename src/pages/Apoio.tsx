@@ -50,22 +50,6 @@ const Apoio = () => {
               </button>
             </div>
           </div>
-
-          {/* Tier 3 */}
-          <div className="rounded-xl border border-border bg-card p-6 shadow-card hover:shadow-card-hover transition-shadow">
-            <div className="flex items-start gap-4">
-              <Heart className="w-8 h-8 text-destructive flex-shrink-0 mt-1" />
-              <div className="flex-1">
-                <h3 className="font-display text-lg font-semibold text-foreground">Patrono do Cinema</h3>
-                <p className="text-muted-foreground text-sm mt-1">
-                  R$ 50,00/mês — Tudo do plano anterior + seu nome nos créditos do site.
-                </p>
-              </div>
-              <button className="px-5 py-2 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity">
-                Assinar
-              </button>
-            </div>
-          </div>
         </div>
 
         <div className="mt-12 text-center">

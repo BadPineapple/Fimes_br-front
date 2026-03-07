@@ -41,9 +41,9 @@ const Navbar = () => {
   return (
     <nav className="sticky top-0 z-50 gradient-hero border-b border-primary/20 backdrop-blur-sm">
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
-        <Link to="/" className="flex items-center gap-2">
-          <Film className="w-6 h-6 text-secondary" />
-          <span className="font-display text-xl font-bold text-primary-foreground">
+        <Link to="/" className="flex items-center gap-2.5">
+          <Film className="w-7 h-7 text-secondary" />
+          <span className="font-display text-2xl font-bold text-primary-foreground">
             Filmes<span className="text-secondary">.br</span>
           </span>
         </Link>

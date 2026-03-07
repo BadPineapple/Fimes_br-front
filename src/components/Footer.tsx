@@ -5,9 +5,9 @@ const Footer = () => (
   <footer className="border-t border-border bg-card py-8 mt-auto">
     <div className="container mx-auto px-4">
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-        <Link to="/" className="flex items-center gap-2">
-          <Film className="w-5 h-5 text-secondary" />
-          <span className="font-display text-lg font-bold text-foreground">
+        <Link to="/" className="flex items-center gap-2.5">
+          <Film className="w-6 h-6 text-secondary" />
+          <span className="font-display text-xl font-bold text-foreground">
             Filmes<span className="text-secondary">.br</span>
           </span>
         </Link>

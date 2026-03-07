@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Film, Edit2, Camera, Star, List, Clock, LogOut } from "lucide-react";
+import { Film, Edit2, Camera, Star, List, Clock, LogOut, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -13,6 +13,9 @@ import { toast } from "sonner";
 import { filmesData } from "@/data/filmes";
 
 const Perfil = () => {
+  const [novaListaAberta, setNovaListaAberta] = useState(false);
+  const [novaListaNome, setNovaListaNome] = useState("");
+  const [novaListaDesc, setNovaListaDesc] = useState("");
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
@@ -200,9 +203,58 @@ const Perfil = () => {
                     <p className="text-sm text-muted-foreground">{lista.qtd} filmes</p>
                   </div>
                 ))}
-                <div className="p-4 rounded-lg border border-dashed border-border hover:border-primary/50 cursor-pointer transition-all flex items-center justify-center text-muted-foreground hover:text-primary">
-                  <span className="text-sm">+ Nova Lista</span>
+                <button
+                  onClick={() => setNovaListaAberta(true)}
+                  className="p-4 rounded-lg border border-dashed border-border hover:border-primary/50 cursor-pointer transition-all flex items-center justify-center text-muted-foreground hover:text-primary"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  <span className="text-sm">Nova Lista</span>
+                </button>
+              </div>
+
+              {novaListaAberta && (
+                <div className="mt-4 p-4 rounded-lg border border-border bg-muted/30">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-semibold text-foreground">Criar nova lista</h4>
+                    <button onClick={() => setNovaListaAberta(false)} className="text-muted-foreground hover:text-foreground">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-xs">Nome da lista</Label>
+                      <Input
+                        placeholder="Ex: Melhores Dramas"
+                        value={novaListaNome}
+                        onChange={(e) => setNovaListaNome(e.target.value)}
+                        maxLength={60}
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Descrição (opcional)</Label>
+                      <Textarea
+                        placeholder="Descreva sua lista..."
+                        value={novaListaDesc}
+                        onChange={(e) => setNovaListaDesc(e.target.value)}
+                        maxLength={200}
+                        rows={2}
+                      />
+                    </div>
+                    <Button
+                      size="sm"
+                      disabled={!novaListaNome.trim()}
+                      onClick={() => {
+                        toast.success(`Lista "${novaListaNome}" criada!`);
+                        setNovaListaNome("");
+                        setNovaListaDesc("");
+                        setNovaListaAberta(false);
+                      }}
+                    >
+                      Criar Lista
+                    </Button>
+                  </div>
                 </div>
+              )}
               </div>
             </CardContent>
           </Card>

@@ -17,6 +17,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { isAuthenticated, user, isAdmin, isModerator, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const links = [
     { to: "/", label: "Home", icon: <Film className="w-4 h-4" /> },

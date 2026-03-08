@@ -97,9 +97,9 @@ const MinhasListas = () => {
 
   return (
     <main className="min-h-[calc(100vh-4rem)]">
-      <div className="gradient-hero h-32 sm:h-40" />
+      <div className="gradient-hero h-20" />
 
-      <div className="container mx-auto px-4 -mt-10 pb-12">
+      <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
           <div>

@@ -76,16 +76,34 @@ const Configuracoes = () => {
 
   return (
     <main className="min-h-[calc(100vh-4rem)]">
-      <div className="gradient-hero h-28 sm:h-36" />
+      <div className="gradient-hero h-20" />
 
-      <div className="container mx-auto px-4 -mt-8 pb-12">
+      <div className="container mx-auto px-4 py-8">
         <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-6">
           Configurações
         </h1>
 
         <div className="grid lg:grid-cols-[240px_1fr] gap-6">
-          {/* Sidebar nav */}
-          <Card className="shadow-card h-fit lg:sticky lg:top-20">
+          {/* Mobile: horizontal scroll tabs */}
+          <div className="lg:hidden flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
+            {sections.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => setActiveSection(s.id)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                  activeSection === s.id
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {s.icon}
+                {s.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Desktop: sidebar nav */}
+          <Card className="shadow-card h-fit hidden lg:block lg:sticky lg:top-20">
             <CardContent className="p-2">
               <nav className="space-y-0.5">
                 {sections.map((s) => (

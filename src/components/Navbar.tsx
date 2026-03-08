@@ -94,10 +94,10 @@ const Navbar = () => {
                 <DropdownMenuItem onClick={() => navigate("/perfil")}>
                   <User className="w-4 h-4 mr-2" /> Perfil
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/perfil")}>
+                <DropdownMenuItem onClick={() => navigate("/configuracoes")}>
                   <Settings className="w-4 h-4 mr-2" /> Configurações
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/perfil")}>
+                <DropdownMenuItem onClick={() => navigate("/listas")}>
                   <List className="w-4 h-4 mr-2" /> Minhas Listas
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

@@ -15,6 +15,7 @@ import Apoio from "./pages/Apoio";
 import Entrar from "./pages/Entrar";
 import Registrar from "./pages/Registrar";
 import Perfil from "./pages/Perfil";
+import ListaDetalhe from "./pages/ListaDetalhe";
 import NotFound from "./pages/NotFound";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -46,6 +47,7 @@ const App = () => (
                 <Route path="/entrar" element={<Entrar />} />
                 <Route path="/registrar" element={<Registrar />} />
                 <Route path="/perfil" element={<Perfil />} />
+                <Route path="/lista/:id" element={<ListaDetalhe />} />
                 <Route path="/admin" element={<AdminLayout />}>
                   <Route index element={<AdminDashboard />} />
                   <Route path="filmes" element={<AdminFilmes />} />

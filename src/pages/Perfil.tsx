@@ -197,6 +197,7 @@ const Perfil = () => {
                 {listas.map((lista) => (
                   <div
                     key={lista.id}
+                    onClick={() => navigate(`/lista/${lista.id}`)}
                     className="p-4 rounded-lg border border-border hover:shadow-md cursor-pointer transition-all hover:border-primary/30"
                   >
                     <p className="font-medium text-foreground">{lista.nome}</p>

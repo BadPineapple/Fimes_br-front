@@ -70,7 +70,14 @@ const Indicacao = () => {
               Nossa indicação pra você:
             </h2>
             <div className="max-w-[200px] mx-auto">
-              <FilmCard filme={resultado} />
+              <FilmCard filme={{
+                IDFIL: resultado.id,
+                NOMFIL: resultado.titulo,
+                ANO: resultado.ano,
+                NOTEXT: resultado.nota_externa,
+                genero: resultado.genero,
+                IMAGEM: resultado.imagens,
+              }} />
             </div>
             {resultado.sinopse && (
               <p className="text-center text-muted-foreground mt-4 text-sm max-w-md mx-auto">

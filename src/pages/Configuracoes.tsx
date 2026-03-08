@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import {
   User, Shield, Eye, EyeOff, Bell, Moon, Sun, Lock, Globe, Trash2, Download,
-  FileText, AlertTriangle, ChevronRight, Save, Mail, Calendar
+  FileText, AlertTriangle, ChevronRight, Save, Mail, Calendar, Heart
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";

@@ -101,6 +101,11 @@ const Navbar = () => {
                   <List className="w-4 h-4 mr-2" /> Minhas Listas
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={toggleTheme}>
+                  {theme === "light" ? <Moon className="w-4 h-4 mr-2" /> : <Sun className="w-4 h-4 mr-2" />}
+                  {theme === "light" ? "Tema Escuro" : "Tema Claro"}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
                   <LogOut className="w-4 h-4 mr-2" /> Sair
                 </DropdownMenuItem>

@@ -1,7 +1,8 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Film, Search, Heart, Sparkles, LogIn, Menu, X, Shield, User, Settings, List, LogOut } from "lucide-react";
+import { Film, Search, Heart, Sparkles, LogIn, Menu, X, Shield, User, Settings, List, LogOut, Sun, Moon } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,

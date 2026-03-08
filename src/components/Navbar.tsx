@@ -168,6 +168,13 @@ const Navbar = () => {
               Backstage
             </Link>
           )}
+          <button
+            onClick={toggleTheme}
+            className="flex items-center gap-2 px-4 py-3 rounded-lg text-primary-foreground/80 text-sm font-medium w-full"
+          >
+            {theme === "light" ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+            {theme === "light" ? "Tema Escuro" : "Tema Claro"}
+          </button>
           {isAuthenticated ? (
             <>
               <Link

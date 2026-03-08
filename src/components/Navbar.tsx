@@ -112,13 +112,22 @@ const Navbar = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Link
-              to="/entrar"
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
-            >
-              <LogIn className="w-4 h-4" />
-              Entrar
-            </Link>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-lg text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10 transition-colors"
+                title={theme === "light" ? "Tema Escuro" : "Tema Claro"}
+              >
+                {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+              </button>
+              <Link
+                to="/entrar"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+              >
+                <LogIn className="w-4 h-4" />
+                Entrar
+              </Link>
+            </div>
           )}
         </div>
 

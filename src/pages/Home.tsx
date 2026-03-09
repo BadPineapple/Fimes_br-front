@@ -66,7 +66,7 @@ const Home = () => {
   return (
     <div className="min-h-screen">
       {/* Hero */}
-      <section className="gradient-hero text-primary-foreground h-[350px] relative overflow-hidden flex items-center">
+      <section className="gradient-hero text-primary-foreground h-[400px] relative overflow-hidden flex items-center">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-10 left-10 w-64 h-64 rounded-full bg-secondary blur-3xl" />
           <div className="absolute bottom-10 right-10 w-96 h-96 rounded-full bg-secondary/50 blur-3xl" />
@@ -83,13 +83,12 @@ const Home = () => {
             <p className="text-base text-primary-foreground/80 leading-relaxed animate-fade-in">
               {banner.descricao}
             </p>
-            <Link
-              to="/filmes"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-secondary text-secondary-foreground font-semibold hover:opacity-90 transition-opacity"
-            >
+
+            <Link to="/filmes" className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-secondary text-secondary-foreground font-semibold hover:opacity-90 transition-opacity">
               Explorar Filmes
               <ArrowRight className="w-4 h-4" />
             </Link>
+            
           </div>
           {/* Dots */}
           <div className="flex gap-2 mt-6">
@@ -100,6 +99,41 @@ const Home = () => {
                 className={`w-2.5 h-2.5 rounded-full transition-all ${i === bannerIndex ? "bg-secondary w-6" : "bg-primary-foreground/30"}`}
               />
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Featured */}
+      <section className="py-16 md:py-24">
+        <div className="container mx-auto px-4">
+          <div className="flex items-end justify-between mb-10">
+            <div>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">
+                Filmes em Destaque
+              </h2>
+              <p className="text-muted-foreground mt-2">Os melhores do cinema nacional</p>
+            </div>
+            <Link
+              to="/filmes"
+              className="hidden md:flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+            >
+              Ver todos <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
+            {destaques.map((filme, i) => (
+              <div key={filme.IDFIL} className="animate-fade-in" style={{ animationDelay: `${i * 80}ms` }}>
+                <FilmCard filme={filme} />
+              </div>
+            ))}
+          </div>
+          <div className="mt-8 text-center md:hidden">
+            <Link
+              to="/filmes"
+              className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+            >
+              Ver todos os filmes <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </section>
@@ -124,41 +158,6 @@ const Home = () => {
               <div className="text-2xl font-display font-bold text-foreground">50+</div>
               <div className="text-sm text-muted-foreground">Diretores</div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured */}
-      <section className="py-16 md:py-24">
-        <div className="container mx-auto px-4">
-          <div className="flex items-end justify-between mb-10">
-            <div>
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">
-                Filmes em Destaque
-              </h2>
-              <p className="text-muted-foreground mt-2">Os melhores do cinema nacional</p>
-            </div>
-            <Link
-              to="/filmes"
-              className="hidden md:flex items-center gap-1 text-sm font-medium text-primary hover:underline"
-            >
-              Ver todos <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
-            {destaques.map((filme, i) => (
-              <div key={filme.id} className="animate-fade-in" style={{ animationDelay: `${i * 80}ms` }}>
-                <FilmCard filme={filme} />
-              </div>
-            ))}
-          </div>
-          <div className="mt-8 text-center md:hidden">
-            <Link
-              to="/filmes"
-              className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
-            >
-              Ver todos os filmes <ArrowRight className="w-4 h-4" />
-            </Link>
           </div>
         </div>
       </section>

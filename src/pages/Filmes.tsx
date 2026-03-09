@@ -64,23 +64,6 @@ const Filmes = () => {
     return () => clearTimeout(timeoutId);
   }, [busca, generoFiltro, tagFiltro, plataformaFiltro, pessoaFiltro, anoFiltro, ordenarPor]);
 
-  // 4. Lógica de filtragem com base nos dados do backend
-  const filmesFiltrados = useMemo(() => {
-    return filmes.filter((f) => {
-      const matchBusca = f.NOMFIL?.toLowerCase().includes(busca.toLowerCase());
-      
-      // Converte os gêneros para array, prevenindo erros caso o backend devolva uma string separada por vírgulas
-      const listaGeneros = Array.isArray(f.genero) 
-        ? f.genero 
-        : (typeof f.genero === 'string' ? f.genero.split(',') : []);
-
-      // Verifica se o filme contém o gênero selecionado
-      const matchGenero = !generoFiltro || listaGeneros.some((g: string) => g.trim() === generoFiltro);
-      
-      return matchBusca && matchGenero;
-    });
-  }, [busca, generoFiltro, filmes]);
-
   // Telas de Carregamento e Erro
   if (loading) {
     return (

@@ -8,16 +8,16 @@ interface FilmCardProps {
   NOMFIL: string;
   ANO: number;
   NOTEXT: number;
-  genero?: string | string[]; 
+  GENEROS?: string | string[]; 
   IMAGEM: string;
 }
 }
 
 const FilmCard = ({ filme }: FilmCardProps) => {
   // Converte a string de gêneros do banco de dados para array, caso venha como texto
-  const listaGeneros = Array.isArray(filme.genero) 
-    ? filme.genero 
-    : (typeof filme.genero === 'string' ? filme.genero.split(',') : []);
+  const listaGeneros = Array.isArray(filme?.GENEROS) 
+    ? filme.GENEROS 
+    : (typeof filme?.GENEROS === 'string' ? filme.GENEROS.split(',').map(g => g.trim()) : []);
 
   return (
     <Link
@@ -48,10 +48,9 @@ const FilmCard = ({ filme }: FilmCardProps) => {
           {/* Alterado para puxar a coluna 'nota_externa' do banco */}
           <span className="font-medium text-foreground">{filme.NOTEXT}</span>
         </div>
-        <div className="flex flex-wrap gap-1.5">
-          {/* Utilizando o array listaGeneros tratado e limpando espaços */}
-          {listaGeneros.slice(0, 2).map((g) => (
-            <GenreBadge key={g.trim()} genre={g.trim()} />
+        <div className="flex flex-wrap gap-2">
+          {listaGeneros?.map((g: any) => (
+            <GenreBadge key={g.IDGEN} genre={g} />
           ))}
         </div>
       </div>

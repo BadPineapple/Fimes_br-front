@@ -1,7 +1,8 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Film, Search, Heart, Sparkles, LogIn, Menu, X, Shield, User, Settings, List, LogOut } from "lucide-react";
+import { Film, Search, Heart, Sparkles, LogIn, Menu, X, Shield, User, Settings, List, LogOut, Sun, Moon } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -16,6 +17,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { isAuthenticated, user, isAdmin, isModerator, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const links = [
     { to: "/", label: "Home", icon: <Film className="w-4 h-4" /> },
@@ -92,11 +94,16 @@ const Navbar = () => {
                 <DropdownMenuItem onClick={() => navigate("/perfil")}>
                   <User className="w-4 h-4 mr-2" /> Perfil
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/perfil")}>
+                <DropdownMenuItem onClick={() => navigate("/configuracoes")}>
                   <Settings className="w-4 h-4 mr-2" /> Configurações
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/perfil")}>
+                <DropdownMenuItem onClick={() => navigate("/listas")}>
                   <List className="w-4 h-4 mr-2" /> Minhas Listas
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={toggleTheme}>
+                  {theme === "light" ? <Moon className="w-4 h-4 mr-2" /> : <Sun className="w-4 h-4 mr-2" />}
+                  {theme === "light" ? "Tema Escuro" : "Tema Claro"}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
@@ -105,13 +112,22 @@ const Navbar = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Link
-              to="/entrar"
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
-            >
-              <LogIn className="w-4 h-4" />
-              Entrar
-            </Link>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-lg text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10 transition-colors"
+                title={theme === "light" ? "Tema Escuro" : "Tema Claro"}
+              >
+                {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+              </button>
+              <Link
+                to="/entrar"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+              >
+                <LogIn className="w-4 h-4" />
+                Entrar
+              </Link>
+            </div>
           )}
         </div>
 
@@ -152,6 +168,13 @@ const Navbar = () => {
               Backstage
             </Link>
           )}
+          <button
+            onClick={toggleTheme}
+            className="flex items-center gap-2 px-4 py-3 rounded-lg text-primary-foreground/80 text-sm font-medium w-full"
+          >
+            {theme === "light" ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+            {theme === "light" ? "Tema Escuro" : "Tema Claro"}
+          </button>
           {isAuthenticated ? (
             <>
               <Link

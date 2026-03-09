@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Home from "./pages/Home";
@@ -14,6 +15,9 @@ import Apoio from "./pages/Apoio";
 import Entrar from "./pages/Entrar";
 import Registrar from "./pages/Registrar";
 import Perfil from "./pages/Perfil";
+import ListaDetalhe from "./pages/ListaDetalhe";
+import MinhasListas from "./pages/MinhasListas";
+import Configuracoes from "./pages/Configuracoes";
 import NotFound from "./pages/NotFound";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -27,6 +31,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <ThemeProvider>
     <AuthProvider>
       <TooltipProvider>
         <Toaster />
@@ -44,6 +49,9 @@ const App = () => (
                 <Route path="/entrar" element={<Entrar />} />
                 <Route path="/registrar" element={<Registrar />} />
                 <Route path="/perfil" element={<Perfil />} />
+                <Route path="/lista/:id" element={<ListaDetalhe />} />
+                <Route path="/listas" element={<MinhasListas />} />
+                <Route path="/configuracoes" element={<Configuracoes />} />
                 <Route path="/admin" element={<AdminLayout />}>
                   <Route index element={<AdminDashboard />} />
                   <Route path="filmes" element={<AdminFilmes />} />
@@ -60,6 +68,7 @@ const App = () => (
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

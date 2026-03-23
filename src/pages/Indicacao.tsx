@@ -1,22 +1,40 @@
 import { useState } from "react";
 import { Sparkles, Send, Film as FilmIcon } from "lucide-react";
 import FilmCard from "@/components/FilmCard";
-import { Filme, filmesData } from "@/data/filmes";
+import { Filme } from "@/data/filmes";
 
 const Indicacao = () => {
   const [pergunta, setPergunta] = useState("");
-  const [resultado, setResultado] = useState<Filme | null>(null);
+  const [resultado, setResultado] = useState<any | null>(null); // Alterado de any[] para aceitar apenas 1 resultado
   const [loading, setLoading] = useState(false);
 
-  const handleIndicar = () => {
+  const handleIndicar = async () => {
     if (!pergunta.trim()) return;
     setLoading(true);
-    // Mock AI - random selection based on input
-    setTimeout(() => {
-      const random = filmesData[Math.floor(Math.random() * filmesData.length)];
-      setResultado(random);
+    setResultado([]); // Limpa resultados anteriores
+
+    try {
+      const response = await fetch("http://localhost:3000/rag/recommend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ description: pergunta }),
+      });
+
+      if (!response.ok) throw new Error("Erro na busca");
+
+      const dados = await response.json();
+        
+      // Pegamos apenas o primeiro (melhor) resultado do array
+      if (dados && dados.length > 0) {
+        setResultado(dados[0]);
+      } else {
+        alert("Não foi possível obter a indicação agora.");
+      } 
+    } catch (error) {
+      console.error("Erro:", error);
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -40,52 +58,65 @@ const Indicacao = () => {
           <textarea
             value={pergunta}
             onChange={(e) => setPergunta(e.target.value)}
-            placeholder="Ex: Quero um filme de ação no sertão nordestino, ou um drama sobre a vida na favela..."
-            className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none h-32 mb-4"
+            placeholder="Ex: Quero um filme de ação no sertão nordestino..."
+            className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground resize-none h-32 mb-4"
           />
           <button
             onClick={handleIndicar}
             disabled={loading || !pergunta.trim()}
-            className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-semibold flex items-center justify-center gap-2"
           >
-            {loading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                Procurando...
-              </>
-            ) : (
-              <>
-                <Send className="w-4 h-4" />
-                Pedir Indicação
-              </>
-            )}
+            {loading ? "Procurando..." : "Pedir Indicação"}
           </button>
         </div>
 
         {/* Result */}
-        {resultado && (
-          <div className="animate-fade-in">
-            <h2 className="font-display text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
-              <FilmIcon className="w-5 h-5 text-primary" />
-              Nossa indicação pra você:
-            </h2>
-            <div className="max-w-[200px] mx-auto">
-              <FilmCard filme={{
-                IDFIL: resultado.id,
-                NOMFIL: resultado.titulo,
-                ANO: resultado.ano,
-                NOTEXT: resultado.nota_externa,
-                genero: resultado.genero,
-                IMAGEM: resultado.imagens,
-              }} />
+        {/* Exibição do Resultado vindo da API */}
+      {resultado && (
+        <div className="animate-fade-in mt-8">
+          <h2 className="font-display text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
+            <FilmIcon className="w-5 h-5 text-primary" />
+            Nossa indicação pra você:
+          </h2>
+          
+          <div className="flex flex-col md:flex-row gap-8 bg-card/30 border border-border p-6 rounded-2xl items-start shadow-sm">
+            
+            {/* Lado Esquerdo: Card */}
+            <div className="w-full md:w-56 shrink-0 mx-auto md:mx-0">
+              <FilmCard 
+                filme={{
+                  // Fazemos um "De -> Para" garantindo que o Card receba as propriedades em maiúsculo
+                  IDFIL: resultado.id || resultado.IDFIL,
+                  NOMFIL: resultado.titulo || resultado.NOMFIL,
+                  // Fallbacks caso a API não tenha retornado esses dados na busca:
+                  ANO: resultado.ANO || 0,
+                  NOTEXT: resultado.NOTEXT || 0,
+                  IMAGEM: resultado.IMAGEM || "",
+                  GENEROS: resultado.GENEROS || []
+                }} 
+              />
             </div>
-            {resultado.sinopse && (
-              <p className="text-center text-muted-foreground mt-4 text-sm max-w-md mx-auto">
-                {resultado.sinopse}
+
+            {/* Lado Direito: Textos */}
+            <div className="flex flex-col flex-1 text-center md:text-left">
+              <h3 className="text-2xl font-bold text-foreground mb-2">
+                {resultado.titulo || resultado.NOMFIL}
+              </h3>
+              
+              {resultado.score && (
+                <span className="inline-block w-fit px-3 py-1 mb-4 rounded-full bg-primary/10 text-primary text-xs font-bold mx-auto md:mx-0">
+                  {Math.round(resultado.score * 100)}% de Relevância
+                </span>
+              )}
+              
+              <p className="text-muted-foreground leading-relaxed text-lg">
+                {resultado.sinopse || resultado.SINOPSE}
               </p>
-            )}
+            </div>
+            
           </div>
-        )}
+        </div>
+      )}
       </div>
     </div>
   );

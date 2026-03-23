@@ -61,59 +61,87 @@ const Registrar = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!isRobotVerified) {
-      toast.error("Por favor, confirme que não é um robô!");
+    // 1. Validações Base corrigidas para usar as variáveis de estado corretas
+    // Removido o '!telefone' pois o backend aceita null
+    if (!nome || !email || !senha) {
+      toast.error("Preencha todos os campos obrigatórios");
       return;
     }
-    
     if (senha !== confirmarSenha) {
-      toast.error("As senhas não coincidem!");
+      toast.error("As senhas não coincidem");
       return;
     }
-    if (strength.score < 4) {
-      toast.error("A senha não é forte o suficiente!");
+    if (!aceitaTermos) {
+      toast.error("Você precisa aceitar os termos de uso");
+      return;
+    }
+    // 2. Travar envio se não validar o "robô"
+    if (!isRobotVerified) {
+      toast.error("Por favor, confirme que você não é um robô.");
       return;
     }
 
     setLoading(true);
+
     try {
-      // Chamada real ao backend
-      await api.post('/auth/registrar', {
+      // 3. Só tenta limpar o telefone se ele foi preenchido
+      const telefoneLimpo = telefone ? telefone.replace(/\D/g, "") : null;
+
+      // Conexão com o Back-end
+      const response = await api.post('/auth/registrar', {
         nome,
         email,
-        telefone,
-        senha,
-        propaganda: aceitaTermos
+        telefone: telefoneLimpo,
+        senha, // Corrigido de 'password' para 'senha'
+        propaganda: aceitaPropagandas // Corrigido para pegar o valor do checkbox
       });
 
-      toast.success("Conta criada! Verifique o seu e-mail.");
-      //setStep(2); // Avança para a etapa de verificação
+      toast.success(response.data.mensagem);
+
+      // 4. Corrigido para setStep ("verify") em vez de setMode
+      setStep("verify");
+
     } catch (error: any) {
-      toast.error(error.response?.data?.erro || "Erro ao registar utilizador.");
+      console.error("Erro completo:", error); // Isso vai jogar o erro real no console (F12)
+      
+      let mensagemErro = "Não foi possível conectar ao servidor.";
+      
+      // Verifica se o backend de fato respondeu algo
+      if (error.response && error.response.data) {
+        mensagemErro = error.response.data.erro || error.response.data.mensagem || "Erro ao tentar registrar.";
+      }
+      
+      toast.error(`Falha: ${mensagemErro}`);
     } finally {
       setLoading(false);
     }
   };
 
+  // NOVA FUNÇÃO: Validar o código recebido no terminal (ou e-mail)
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (code.length !== 6) {
-      toast.error("Código inválido!");
+    
+    if (code.length < 6) {
+      toast.error("Insira o código completo de 6 dígitos.");
       return;
     }
-
+    
     setLoading(true);
-    try {
-      // Envia o código digitado para o backend validar
-      await api.post('/auth/verificar-email', {
-        email,
-        codigo: code
-      });
 
-      toast.success("E-mail verificado com sucesso!");
-      navigate("/entrar"); // Redireciona para o login
+    try {
+      const response = await api.post('/verificar-email', { 
+        email, 
+        codigo: code 
+      });
+      
+      toast.success(response.data.mensagem || "E-mail verificado com sucesso!");
+      
+      // Redireciona o utilizador para fazer login
+      navigate("/entrar");
+
     } catch (error: any) {
-      toast.error(error.response?.data?.erro || "Código de verificação incorreto.");
+      console.error("Erro na verificação:", error.response?.data || error);
+      toast.error(error.response?.data?.erro || "Código inválido ou expirado.");
     } finally {
       setLoading(false);
     }

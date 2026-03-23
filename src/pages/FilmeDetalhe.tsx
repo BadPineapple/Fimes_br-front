@@ -19,10 +19,10 @@ const FilmeDetalhe = () => {
     const carregarFilme = async () => {
       try {
         setLoading(true);
+        // Certifique-se que sua rota GET /filmes/:id faz os JOINs com tblgen e tblpes
         const response = await api.get(`/filmes/${id}`);
         setFilme(response.data);
       } catch (err) {
-        console.error("Erro ao carregar detalhes do filme:", err);
         setErro("Não foi possível carregar as informações do filme.");
       } finally {
         setLoading(false);
@@ -31,35 +31,20 @@ const FilmeDetalhe = () => {
     carregarFilme();
   }, [id]);
 
-  if (loading) {
+  if (loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin" /></div>;
+  if (erro || !filme) return <div className="text-center p-20 text-red-500">{erro || "Filme não encontrado"}</div>;
+
+  // 1. Corrigido para GENEROS (Maiúsculo)
+  const listaGeneros = Array.isArray(filme?.GENEROS) 
+    ? filme.GENEROS 
+    : (typeof filme?.GENEROS === 'string' ? filme.GENEROS.split(',').map(g => g.trim()) : []);
+
+  // 2. Corrigido para PLATAFORMAS (Maiúsculo e Plural, vindo da tblpla)
+  const listaPlataformas = Array.isArray(filme?.PLATAFORMAS)
+    ? filme.PLATAFORMAS
+    : (typeof filme?.PLATAFORMAS === 'string' ? filme.PLATAFORMAS.split(',').map(p => p.trim()) : []);
+  
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        <span className="ml-3 text-lg font-medium text-muted-foreground">Carregando detalhes...</span>
-      </div>
-    );
-  }
-
-  if (erro || !filme) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <p className="text-lg text-destructive font-medium">{erro || "Filme não encontrado"}</p>
-          <Link to="/filmes" className="text-primary hover:underline font-semibold">Voltar para o catálogo</Link>
-        </div>
-      </div>
-    );
-  }
-
-  const listaGeneros = Array.isArray(filme.genero)
-    ? filme.genero
-    : (typeof filme.genero === "string" ? filme.genero.split(",") : []);
-
-  const listaPlataformas = Array.isArray(filme.plataforma)
-    ? filme.plataforma
-    : (typeof filme.plataforma === "string" ? filme.plataforma.split(",") : []);
-
-  return (
     <div className="min-h-screen py-8">
       <div className="container mx-auto px-4">
         <Link
@@ -78,7 +63,7 @@ const FilmeDetalhe = () => {
               {/* Poster */}
               <div className="aspect-[2/3] rounded-xl overflow-hidden bg-card border border-border flex items-center justify-center shadow-card">
                 {filme.imagens ? (
-                  <img src={filme.imagens} alt={filme.titulo} className="w-full h-full object-cover" />
+                  <img src={filme.IMAGEM} alt={filme.NOMFIL} className="w-full h-full object-cover" />
                 ) : (
                   <FilmIcon className="w-20 h-20 text-primary/25" />
                 )}
@@ -97,7 +82,7 @@ const FilmeDetalhe = () => {
                     )}
                   </div>
                   <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-                    {filme.titulo}
+                    {filme.NOMFIL}
                   </h1>
                 </div>
 
@@ -105,22 +90,22 @@ const FilmeDetalhe = () => {
                   <div className="flex items-center gap-1.5">
                     <span className="font-semibold text-foreground">Geral:</span>
                     <Star className="w-4 h-4 fill-secondary text-secondary" />
-                    <span className="font-medium">{filme.nota_externa || "N/A"}/10</span>
+                    <span className="font-medium">{filme.NOTEXT || "N/A"}/10</span>
                   </div>
                 </div>
 
-                {listaGeneros.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {listaGeneros.map((g: string) => (
-                      <GenreBadge key={g.trim()} genre={g.trim()} />
-                    ))}
-                  </div>
-                )}
+                {/* Gêneros */}
+                <div className="flex gap-2">
+                  {listaGeneros.map((g, index) => (
+                    <span key={g.IDGEN || index}>{g.NOMGEN || g}</span>
+                  ))}
+                </div>
+
 
                 {filme.sinopse && (
                   <div>
                     <h2 className="font-display text-xl font-semibold text-primary mb-2">Sinopse</h2>
-                    <p className="text-foreground/80 leading-relaxed">{filme.sinopse}</p>
+                    <p className="text-foreground/80 leading-relaxed">{filme.SINOPSE}</p>
                   </div>
                 )}
 
@@ -128,13 +113,13 @@ const FilmeDetalhe = () => {
                   <div>
                     <h2 className="font-display text-xl font-semibold text-foreground mb-3">Onde Assistir</h2>
                     <div className="flex flex-wrap gap-2">
-                      {listaPlataformas.map((plat: string) => (
+                      {listaPlataformas.map((p, index) =>(
                         <span
-                          key={plat.trim()}
+                          key={p.IDPLA || index}
                           className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-input bg-background text-foreground text-sm font-medium hover:bg-muted transition-colors cursor-pointer"
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
-                          {plat.trim()}
+                          {p.NOMPLA || p}
                         </span>
                       ))}
                     </div>

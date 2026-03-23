@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import api from "@/services/api";
 
 type LoginMode = "credentials" | "email-code" | "forgot-password";
 
@@ -31,13 +32,37 @@ const Entrar = () => {
       toast.error("Preencha todos os campos");
       return;
     }
+    
     setLoading(true);
+
     try {
+      // 1. Rota corrigida para bater exatamente com o seu loginRoutes.js
+      const response = await api.post('/auth/login', { email, senha });
+
+      // 2. Se o seu backend devolver um token (JWT), guardamos para manter a sessão
+      if (response.data.token) {
+        localStorage.setItem('@Filmes:token', response.data.token);
+        api.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+      }
+
+      // 3. Atualiza o estado global da sua aplicação (AuthContext)
       await login(email, senha);
-      toast.success("Login realizado com sucesso!");
+
+      toast.success("Bem-vindo de volta!");
       navigate("/");
-    } catch {
-      toast.error("E-mail ou senha incorretos");
+      
+    } catch (error: any) {
+      console.error("Erro completo do login:", error);
+      
+      // 4. Proteção contra o "Falha: undefined" caso o servidor caia
+      let mensagemErro = "Não foi possível conectar ao servidor.";
+      
+      if (error.response && error.response.data) {
+        // O seu loginController envia o erro dentro da propriedade "erro"
+        mensagemErro = error.response.data.erro || error.response.data.mensagem || "E-mail ou senha incorretos.";
+      }
+      
+      toast.error(`Falha: ${mensagemErro}`);
     } finally {
       setLoading(false);
     }

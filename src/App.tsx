@@ -10,6 +10,7 @@ import Footer from "@/components/Footer";
 import Home from "./pages/Home";
 import Filmes from "./pages/Filmes";
 import FilmeDetalhe from "./pages/FilmeDetalhe";
+import GeneroDetalhe from "./pages/GeneroDetalhe";
 import Indicacao from "./pages/Indicacao";
 import Apoio from "./pages/Apoio";
 import Entrar from "./pages/Entrar";
@@ -44,6 +45,7 @@ const App = () => (
                 <Route path="/" element={<Home />} />
                 <Route path="/filmes" element={<Filmes />} />
                 <Route path="/filme/:id" element={<FilmeDetalhe />} />
+                <Route path="/genero/:nome" element={<GeneroDetalhe />} />
                 <Route path="/indicacao" element={<Indicacao />} />
                 <Route path="/apoio" element={<Apoio />} />
                 <Route path="/entrar" element={<Entrar />} />

@@ -76,7 +76,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     toast.info("Sessão encerrada com sucesso.");
   };
-
   return (
     <AuthContext.Provider value={{ 
       user, 

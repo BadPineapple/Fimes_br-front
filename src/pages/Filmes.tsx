@@ -1,10 +1,17 @@
-import { useState, useMemo, useEffect } from "react";
-import { Search, X, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Loader2, SlidersHorizontal, X } from "lucide-react";
 import FilmCard from "@/components/FilmCard";
 import api from "@/services/api";
 
+const tabs = [
+  { key: "todos", label: "Todos" },
+  { key: "recentes", label: "Mais Recentes" },
+  { key: "populares", label: "Populares" },
+  { key: "bem_avaliados", label: "Bem Avaliados" },
+  { key: "classicos", label: "Clássicos" },
+];
+
 const Filmes = () => {
- // 1. Estados dinâmicos vindos do banco de dados
   const [filmes, setFilmes] = useState<any[]>([]);
   const [generos, setGeneros] = useState<any[]>([]);
   const [plataformas, setPlataformas] = useState<any[]>([]);
@@ -13,42 +20,47 @@ const Filmes = () => {
   const [sugestoesPessoas, setSugestoesPessoas] = useState<any[]>([]);
   const [textoBuscaPessoa, setTextoBuscaPessoa] = useState(""); // Nome digitado
   const [loading, setLoading] = useState(true);
-  const [erro, setErro] = useState(""); 
+  const [erro, setErro] = useState("");
+  const [activeTab, setActiveTab] = useState("todos");
+  const [showFilters, setShowFilters] = useState(false);
 
-  // 2. Estados de Filtro
+  // Filtros
   const [busca, setBusca] = useState("");
   const [generoFiltro, setGeneroFiltro] = useState("");
-  const [tagFiltro, setTagFiltro] = useState(""); 
-  const [plataformaFiltro, setPlataformaFiltro] = useState(""); 
-  const [pessoaFiltro, setPessoaFiltro] = useState(""); 
   const [anoFiltro, setAnoFiltro] = useState("");
   const [ordenarPor, setOrdenarPor] = useState("nome_asc");
 
-  // 3. Buscar os dados na API ao montar o componente
   useEffect(() => {
     const carregarDados = async () => {
       try {
         setLoading(true);
-        
-        // Constrói os parâmetros dinâmicos para a API
+
         const params = new URLSearchParams();
         if (busca) params.append("titulo", busca);
         if (generoFiltro) params.append("genero", generoFiltro);
-        if (tagFiltro) params.append("tag", tagFiltro);
-        if (plataformaFiltro) params.append("plataforma", plataformaFiltro);
-        if (pessoaFiltro) params.append("pessoa", pessoaFiltro);
         if (anoFiltro) params.append("ano", anoFiltro);
-        if (ordenarPor) params.append("ordenarPor", ordenarPor);
 
-        const [resFilmes, resGeneros, resPlataformas, resPessoas, resTags] = await Promise.all([
+        // Ordenação baseada na tab ativa
+        let sort = ordenarPor;
+        if (activeTab === "recentes") sort = "ano_desc";
+        else if (activeTab === "populares") sort = "nota_desc";
+        else if (activeTab === "bem_avaliados") sort = "nota_desc";
+        else if (activeTab === "classicos") sort = "ano_asc";
+        params.append("ordenarPor", sort);
+
+        const [resFilmes, resGeneros] = await Promise.all([
           api.get(`/filmes?${params.toString()}`),
           api.get("/opcoes/generos"),
-          api.get("/opcoes/plataformas"),
-          api.get("/opcoes/pessoas"),
-          api.get("/opcoes/tags"),
         ]);
 
-        setFilmes(resFilmes.data);
+        let filmesData = resFilmes.data;
+
+        // Filtro local por tab
+        if (activeTab === "classicos") {
+          filmesData = filmesData.filter((f: any) => (f.ANOLAN || f.ano) <= 2000);
+        }
+
+        setFilmes(filmesData);
         setGeneros(resGeneros.data);
         setPlataformas(resPlataformas.data); 
         setTags(resTags.data);
@@ -60,29 +72,24 @@ const Filmes = () => {
       }
     };
 
-    // Debounce: Aguarda 500ms após o usuário parar de interagir antes de chamar a API
-    const timeoutId = setTimeout(() => {
-      carregarDados();
-    }, 500);
-
+    const timeoutId = setTimeout(() => carregarDados(), 500);
     return () => clearTimeout(timeoutId);
-  }, [busca, generoFiltro, tagFiltro, plataformaFiltro, pessoaFiltro, anoFiltro, ordenarPor]);
+  }, [busca, generoFiltro, anoFiltro, ordenarPor, activeTab]);
 
-  // Telas de Carregamento e Erro
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        <span className="ml-3 text-lg font-medium text-muted-foreground">Carregando catálogo...</span>
-      </div>
-    );
-  }
+  const activeFilters = [generoFiltro, anoFiltro, busca].filter(Boolean).length;
+
+  const clearFilters = () => {
+    setBusca("");
+    setGeneroFiltro("");
+    setAnoFiltro("");
+    setOrdenarPor("nome_asc");
+  };
 
   if (erro) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-center p-4">
-        <p className="text-red-500 font-bold mb-4">{erro}</p>
-        <button 
+        <p className="text-destructive font-bold mb-4">{erro}</p>
+        <button
           onClick={() => window.location.reload()}
           className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition"
         >
@@ -93,124 +100,153 @@ const Filmes = () => {
   }
 
   return (
-    <div className="min-h-screen py-10">
-      <div className="container mx-auto px-4">
-        <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-8">
-          Filmografia Brasileira
-        </h1>
-
-        {/* Filters */}
-
-        {/* Filters & Sorting */}
-        <div className="flex flex-col gap-4 mb-8">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+    <div className="min-h-screen">
+      {/* Header com tabs estilo Steam */}
+      <div className="gradient-hero border-b border-border/30">
+        <div className="container mx-auto px-4">
+          {/* Título + Busca */}
+          <div className="pt-8 pb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <h1 className="font-display text-2xl md:text-3xl font-bold text-primary-foreground">
+              Filmografia Brasileira
+            </h1>
+            <div className="relative w-full sm:w-72">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-foreground/50" />
               <input
                 type="text"
                 placeholder="Buscar por nome..."
                 value={busca}
                 onChange={(e) => setBusca(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full pl-10 pr-4 py-2 rounded-lg bg-primary-foreground/10 border border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/40 focus:outline-none focus:ring-2 focus:ring-secondary/50 text-sm"
               />
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-muted-foreground whitespace-nowrap">
-                Ordenar:
-              </label>
-              <select
-                value={ordenarPor}
-                onChange={(e) => setOrdenarPor(e.target.value)}
-                className="px-3 py-2.5 rounded-lg border border-primary bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="nome_asc">Nome (A-Z)</option>
-                <option value="nome_desc">Nome (Z-A)</option>
-                <option value="nota_desc">Maior Nota</option>
-                <option value="nota_asc">Menor Nota</option>
-                <option value="ano_desc">Mais Recentes</option>
-                <option value="ano_asc">Mais Antigos</option>
-              </select>
             </div>
           </div>
 
-          {/* Grid de Filtros Avançados */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            {/* Gêneros */}
-            <select value={generoFiltro} onChange={(e) => setGeneroFiltro(e.target.value)} className="px-3 py-2.5 rounded-lg border border-primary bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
-              <option value="">Gêneros (Todos)</option>
-              {generos.map((g) => <option key={g.IDGEN} value={g.IDGEN}>{g.NOMGEN}</option>)}
-            </select>
+          {/* Tabs */}
+          <div className="flex items-center gap-0 overflow-x-auto scrollbar-hide">
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`relative px-5 py-3 text-sm font-semibold uppercase tracking-wide whitespace-nowrap transition-colors ${
+                  activeTab === tab.key
+                    ? "text-secondary"
+                    : "text-primary-foreground/60 hover:text-primary-foreground/90"
+                }`}
+              >
+                {tab.label}
+                {activeTab === tab.key && (
+                  <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-secondary rounded-t-full" />
+                )}
+              </button>
+            ))}
+            {/* Botão de filtros */}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`ml-auto flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                showFilters || activeFilters > 0
+                  ? "bg-secondary/20 text-secondary"
+                  : "text-primary-foreground/60 hover:text-primary-foreground/90"
+              }`}
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              Filtros
+              {activeFilters > 0 && (
+                <span className="ml-1 w-5 h-5 rounded-full bg-secondary text-secondary-foreground text-xs flex items-center justify-center font-bold">
+                  {activeFilters}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
 
-            <input type="number" placeholder="Ano" value={anoFiltro} onChange={(e) => setAnoFiltro(e.target.value)} className="px-3 py-2.5 rounded-lg border border-primary bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"/>
-
-          {/*<select value={tagFiltro} onChange={(e) => setTagFiltro(e.target.value)} className="px-3 py-2.5 rounded-lg border border-primary bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
-              <option value="">Tags (Todas)</option>
-              {tags.map((t) => <option key={t.IDTAG} value={t.IDTAG}>{t.NOMTAG}</option>)}
-            </select>*/}
-
-            <select value={plataformaFiltro} onChange={(e) => setPlataformaFiltro(e.target.value)} className="px-3 py-2.5 rounded-lg border border-primary bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
-              <option value="">Plataformas</option>
-              {plataformas.map((p) => <option key={p.IDPLA} value={p.IDPLA}>{p.NOMPLA}</option>)}
-            </select>
-
-            <div className="relative flex-1">
-              <input
-                type="text"
-                placeholder="Pesquisar Diretor/Ator..."
-                value={textoBuscaPessoa}
-                onChange={async (e) => {
-                  const valor = e.target.value;
-                  setTextoBuscaPessoa(valor);
-                  
-                  if (valor.length > 2) {
-                    const res = await api.get(`/opcoes/pessoas/busca?busca=${valor}`);
-                    setSugestoesPessoas(res.data);
-                  } else {
-                    setSugestoesPessoas([]);
-                  }
-                  
-                  if (!valor) setPessoaFiltro(""); // Reseta o filtro se apagar o texto
-                }}
-                className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm"
-              />
-
-              {/* Menu de Sugestões */}
-              {sugestoesPessoas.length > 0 && (
-                <ul className="absolute z-10 w-full mt-1 bg-background border border-input rounded-md shadow-lg">
-                  {sugestoesPessoas.map((p) => (
-                    <li
-                      key={p.IDPES}
-                      onClick={() => {
-                        setPessoaFiltro(p.IDPES); // ID para o filtro de filmes
-                        setTextoBuscaPessoa(p.NOMPES); // Nome para o input
-                        setSugestoesPessoas([]); // Fecha a lista
-                      }}
-                      className="px-3 py-2 hover:bg-accent cursor-pointer text-sm border-b last:border-0"
-                    >
-                      {p.NOMPES}
-                    </li>
+      {/* Painel de filtros expansível */}
+      {showFilters && (
+        <div className="bg-card border-b border-border">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex flex-wrap items-end gap-4">
+              <div className="flex-1 min-w-[160px]">
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Gênero</label>
+                <select
+                  value={generoFiltro}
+                  onChange={(e) => setGeneroFiltro(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value="">Todos</option>
+                  {generos.map((g: any) => (
+                    <option key={g.IDGEN} value={g.IDGEN}>{g.NOMGEN}</option>
                   ))}
-                </ul>
+                </select>
+              </div>
+
+              <div className="w-[140px]">
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Ano</label>
+                <input
+                  type="number"
+                  placeholder="Ex: 2020"
+                  value={anoFiltro}
+                  onChange={(e) => setAnoFiltro(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+
+              <div className="w-[180px]">
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Ordenar por</label>
+                <select
+                  value={ordenarPor}
+                  onChange={(e) => setOrdenarPor(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value="nome_asc">Nome (A-Z)</option>
+                  <option value="nome_desc">Nome (Z-A)</option>
+                  <option value="nota_desc">Maior Nota</option>
+                  <option value="nota_asc">Menor Nota</option>
+                  <option value="ano_desc">Mais Recentes</option>
+                  <option value="ano_asc">Mais Antigos</option>
+                </select>
+              </div>
+
+              {activeFilters > 0 && (
+                <button
+                  onClick={clearFilters}
+                  className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                  Limpar
+                </button>
               )}
             </div>
           </div>
         </div>
+      )}
 
-        {/* Results */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
-          {filmes.map((filme, i) => (
-            <div key={filme.IDFIL} className="animate-fade-in" style={{ animationDelay: `${i * 60}ms` }}>
-              <FilmCard filme={filme} />
-            </div>
-          ))}
-        </div>
-
-        {filmes.length === 0 && (
-          <div className="text-center py-20 text-muted-foreground">
-            <p className="text-lg">Nenhum filme encontrado.</p>
-            <p className="text-sm mt-1">Tente alterar os filtros de busca.</p>
+      {/* Conteúdo */}
+      <div className="container mx-auto px-4 py-8">
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <span className="ml-3 text-muted-foreground">Carregando catálogo...</span>
           </div>
+        ) : (
+          <>
+            <p className="text-sm text-muted-foreground mb-6">
+              {filmes.length} filme{filmes.length !== 1 ? "s" : ""} encontrado{filmes.length !== 1 ? "s" : ""}
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
+              {filmes.map((filme, i) => (
+                <div key={filme.IDFIL} className="animate-fade-in" style={{ animationDelay: `${i * 60}ms` }}>
+                  <FilmCard filme={filme} />
+                </div>
+              ))}
+            </div>
+
+            {filmes.length === 0 && (
+              <div className="text-center py-20 text-muted-foreground">
+                <p className="text-lg">Nenhum filme encontrado.</p>
+                <p className="text-sm mt-1">Tente alterar os filtros de busca.</p>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

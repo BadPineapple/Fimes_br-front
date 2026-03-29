@@ -1,8 +1,23 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Film, Star, Clapperboard, Loader2 } from "lucide-react";
+import { ArrowRight, ArrowLeft, Film, Star, Clapperboard, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import FilmCard from "@/components/FilmCard";
 import api from "@/services/api";
+
+const generos = [
+  { nome: "Drama", icone: "🎭" },
+  { nome: "Comédia", icone: "😂" },
+  { nome: "Ação", icone: "💥" },
+  { nome: "Crime", icone: "🔍" },
+  { nome: "Romance", icone: "❤️" },
+  { nome: "Ficção Científica", icone: "🚀" },
+  { nome: "Thriller", icone: "😱" },
+  { nome: "Aventura", icone: "🗺️" },
+  { nome: "Documentário", icone: "📹" },
+  { nome: "Terror", icone: "👻" },
+  { nome: "Animação", icone: "✨" },
+  { nome: "Musical", icone: "🎵" },
+];
 
 const banners = [
   {

@@ -16,6 +16,8 @@ const AdminFilmes = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingFilme, setEditingFilme] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
+  const [imagemFile, setImagemFile] = useState<File | null>(null);
+  const [imagemPreview, setImagemPreview] = useState<string | null>(null);
 
   // Estados para as listas do Banco de Dados (para preencher os selects)
   const [dbGeneros, setDbGeneros] = useState<any[]>([]);
@@ -35,10 +37,17 @@ const AdminFilmes = () => {
     plataformas: [] as string[]
   });
 
+  // No useEffect ou ao fechar o modal
   useEffect(() => {
     fetchFilmes();
     fetchListasSecundarias();
-  }, []);
+    return () => {
+      if (imagemPreview && imagemPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(imagemPreview);
+      }
+    };
+
+  }, [imagemPreview]);
 
   const fetchFilmes = async () => {
     try {
@@ -77,27 +86,33 @@ const AdminFilmes = () => {
       titulo: "", ano: "", nota_externa: "", sinopse: "", imagens: "", 
       generos: [], diretores: [], elenco: [], plataformas: [] 
     });
+    setImagemFile(null);
+    setImagemPreview(null);
     setDialogOpen(true);
   };
 
   const openEdit = (filme: any) => {
     setEditingFilme(filme);
     
-    // Filtra pessoas por cargo caso o seu backend retorne todos juntos
-    const diretores = filme.DIRETORES?.filter((p:any) => p.CARGO === 'Diretor').map((d: any) => d.NOMPES) || [];
-    const atores = filme.DIRETORES?.filter((p:any) => p.CARGO === 'Ator').map((d: any) => d.NOMPES) || [];
-
+    // Filtra cargos corretamente baseado no que vem do backend
+    const diretores = filme.DIRETORES?.filter((p: any) => p.CARGO === 'Diretor').map((d: any) => d.NOMPES) || [];
+    const atores = filme.DIRETORES?.filter((p: any) => p.CARGO === 'Ator').map((d: any) => d.NOMPES) || [];
+  
     setForm({
       titulo: filme.NOMFIL || "",
       ano: filme.ANO ? String(filme.ANO) : "",
       nota_externa: filme.NOTEXT ? String(filme.NOTEXT) : "",
       sinopse: filme.SINOPSE || "",
-      imagens: filme.IMAGEM || "",
+      imagens: filme.IMAGEM || "", 
       generos: filme.GENEROS?.map((g: any) => g.NOMGEN) || [],
       diretores: diretores.length > 0 ? diretores : (filme.DIRETORES?.map((d: any) => d.NOMPES) || []), // Fallback
       elenco: atores,
       plataformas: filme.PLATAFORMAS?.map((p: any) => p.NOMPLA) || [],
     });
+    
+    setImagemFile(null);
+    // O preview usa a URL processada pelo JOIN (URL_IMAGEM)
+    setImagemPreview(filme.URL_IMAGEM || null); 
     setDialogOpen(true);
   };
 
@@ -107,13 +122,35 @@ const AdminFilmes = () => {
       return;
     }
 
+    setLoading(true); // Bloqueia o botão para evitar duplicação
+
     try {
+      let idImagemFinal = form.imagens;
+
+      // 1. FAZ O UPLOAD DA IMAGEM PRIMEIRO (se o utilizador selecionou um ficheiro novo)
+      if (imagemFile) {
+        const formData = new FormData();
+        formData.append('imagem', imagemFile);
+        formData.append('tipo', 'poster'); // Parametrizado como pede o seu backend
+        formData.append('hint', `Poster do filme ${form.titulo}`);
+        formData.append('public', '1');
+
+        // Faz o upload para a sua nova rota
+        const uploadResponse = await api.post('/img/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+
+        // O backend (imagemController.js) devolve 'idImagem'
+        idImagemFinal = uploadResponse.data.idImagem; 
+      }
+
+      // 2. MONTA O PAYLOAD DO FILME COM O ID DA IMAGEM ATUALIZADO
       const payload = {
         titulo: form.titulo,
         ano: Number(form.ano),
         nota_externa: form.nota_externa ? parseFloat(form.nota_externa) : null,
         sinopse: form.sinopse,
-        imagens: form.imagens,
+        idImagem: idImagemFinal, 
         generos: form.generos,
         diretor: form.diretores,
         elenco: form.elenco,
@@ -130,18 +167,15 @@ const AdminFilmes = () => {
 
       setDialogOpen(false);
       fetchFilmes();
-      fetchListasSecundarias(); // Recarrega listas caso algo novo tenha sido criado
-    } catch (error) {
-      // 1. Imprime o erro completo no Console (F12)
+      fetchListasSecundarias(); 
+    } catch (error: any) {
       console.error("Erro detalhado do backend:", error.response?.data || error);
-      
-      // 2. Tenta pegar a mensagem de 'detalhe' que configuramos no Node.js
       const mensagemErro = error.response?.data?.detalhe 
                         || error.response?.data?.erro 
                         || "Erro desconhecido ao salvar o filme.";
-                        
-      // 3. Mostra o erro real na tela
       toast.error(`Falha: ${mensagemErro}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -241,6 +275,44 @@ const AdminFilmes = () => {
                 <DialogTitle className="text-xl">{editingFilme ? "Editar Filme" : "Adicionar Novo Filme"}</DialogTitle>
               </DialogHeader>
               <div className="grid gap-5 py-4">
+
+               {/* UPLOAD DE CAPA */}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right font-semibold">Capa (Pôster)</Label>
+                <div className="col-span-3 flex items-end gap-4">
+                  {/* Pré-visualização da Imagem */}
+                  {imagemPreview ? (
+                    <img 
+                      src={imagemPreview.startsWith('http') || imagemPreview.startsWith('blob') ? imagemPreview : `http://localhost:3000${imagemPreview}`} 
+                      alt="Preview" 
+                      className="w-24 h-36 object-cover rounded border border-border shadow-sm" 
+                    />
+                  ) : (
+                    <div className="w-24 h-36 bg-muted flex items-center justify-center rounded border border-border">
+                      <Film className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                  )}
+
+                  <div className="flex-1 space-y-2">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setImagemFile(file);
+                          // Gera um preview local temporário instantâneo (Blob) para o utilizador
+                          setImagemPreview(URL.createObjectURL(file)); 
+                        }
+                      }}
+                      className="cursor-pointer"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Formatos aceites: JPG, PNG, WEBP. Tamanho máximo: 5MB.
+                    </p>
+                  </div>
+                </div>
+              </div>
                 
                 {/* Campos Básicos */}
                 <div className="grid grid-cols-4 items-center gap-4">
@@ -256,11 +328,6 @@ const AdminFilmes = () => {
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="nota_externa" className="text-right font-semibold">Nota IMDb</Label>
                   <Input id="nota_externa" type="number" step="0.1" value={form.nota_externa} onChange={(e) => setForm({ ...form, nota_externa: e.target.value })} className="col-span-3" />
-                </div>
-
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="imagens" className="text-right font-semibold">Capa (URL)</Label>
-                  <Input id="imagens" placeholder="https://..." value={form.imagens} onChange={(e) => setForm({ ...form, imagens: e.target.value })} className="col-span-3" />
                 </div>
 
                 <div className="grid grid-cols-4 items-start gap-4">

@@ -7,8 +7,13 @@ const Filmes = () => {
  // 1. Estados dinâmicos vindos do banco de dados
   const [filmes, setFilmes] = useState<any[]>([]);
   const [generos, setGeneros] = useState<any[]>([]);
+  const [plataformas, setPlataformas] = useState<any[]>([]);
+  const [pessoas, setPessoas] = useState<any[]>([]);
+  const [tags, setTags] = useState<any[]>([]);
+  const [sugestoesPessoas, setSugestoesPessoas] = useState<any[]>([]);
+  const [textoBuscaPessoa, setTextoBuscaPessoa] = useState(""); // Nome digitado
   const [loading, setLoading] = useState(true);
-  const [erro, setErro] = useState("");
+  const [erro, setErro] = useState(""); 
 
   // 2. Estados de Filtro
   const [busca, setBusca] = useState("");
@@ -45,9 +50,8 @@ const Filmes = () => {
 
         setFilmes(resFilmes.data);
         setGeneros(resGeneros.data);
-        setGeneros(resPlataformas.data);
-        setGeneros(resPessoas.data);
-        setGeneros(resTags.data);
+        setPlataformas(resPlataformas.data); 
+        setTags(resTags.data);
       } catch (err) {
         console.error("Erro ao carregar dados:", err);
         setErro("Não foi possível carregar o catálogo de filmes.");
@@ -132,48 +136,64 @@ const Filmes = () => {
 
           {/* Grid de Filtros Avançados */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            <select
-              value={generoFiltro}
-              onChange={(e) => setGeneroFiltro(e.target.value)}
-              className="px-3 py-2 rounded-lg border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            >
+            {/* Gêneros */}
+            <select value={generoFiltro} onChange={(e) => setGeneroFiltro(e.target.value)} className="px-3 py-2.5 rounded-lg border border-primary bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
               <option value="">Gêneros (Todos)</option>
-              {generos.map((g) => (
-                <option key={g.IDGEN} value={g.IDGEN}>{g.NOMGEN}</option>
-              ))}
+              {generos.map((g) => <option key={g.IDGEN} value={g.IDGEN}>{g.NOMGEN}</option>)}
             </select>
 
-            <input
-              type="number"
-              placeholder="Ano de Lançamento"
-              value={anoFiltro}
-              onChange={(e) => setAnoFiltro(e.target.value)}
-              className="px-3 py-2 rounded-lg border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            />
+            <input type="number" placeholder="Ano" value={anoFiltro} onChange={(e) => setAnoFiltro(e.target.value)} className="px-3 py-2.5 rounded-lg border border-primary bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"/>
 
-            {/* NOTA: Para Tag, Plataforma e Pessoa, utilizei inputs de texto para receber o ID.
-                O ideal seria criar rotas no Backend para buscar essas listas e transformar em <select> iguais ao do Gênero. */}
-            <input
-              type="text"
-              placeholder="ID da Tag..."
-              value={tagFiltro}
-              onChange={(e) => setTagFiltro(e.target.value)}
-              className="px-3 py-2 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-             <input
-              type="text"
-              placeholder="ID da Plataforma..."
-              value={plataformaFiltro}
-              onChange={(e) => setPlataformaFiltro(e.target.value)}
-              className="px-3 py-2 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-            <input
-              type="text"
-              placeholder="ID da Pessoa..."
-              value={pessoaFiltro}
-              onChange={(e) => setPessoaFiltro(e.target.value)}
-              className="px-3 py-2 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            />
+          {/*<select value={tagFiltro} onChange={(e) => setTagFiltro(e.target.value)} className="px-3 py-2.5 rounded-lg border border-primary bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
+              <option value="">Tags (Todas)</option>
+              {tags.map((t) => <option key={t.IDTAG} value={t.IDTAG}>{t.NOMTAG}</option>)}
+            </select>*/}
+
+            <select value={plataformaFiltro} onChange={(e) => setPlataformaFiltro(e.target.value)} className="px-3 py-2.5 rounded-lg border border-primary bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
+              <option value="">Plataformas</option>
+              {plataformas.map((p) => <option key={p.IDPLA} value={p.IDPLA}>{p.NOMPLA}</option>)}
+            </select>
+
+            <div className="relative flex-1">
+              <input
+                type="text"
+                placeholder="Pesquisar Diretor/Ator..."
+                value={textoBuscaPessoa}
+                onChange={async (e) => {
+                  const valor = e.target.value;
+                  setTextoBuscaPessoa(valor);
+                  
+                  if (valor.length > 2) {
+                    const res = await api.get(`/opcoes/pessoas/busca?busca=${valor}`);
+                    setSugestoesPessoas(res.data);
+                  } else {
+                    setSugestoesPessoas([]);
+                  }
+                  
+                  if (!valor) setPessoaFiltro(""); // Reseta o filtro se apagar o texto
+                }}
+                className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm"
+              />
+
+              {/* Menu de Sugestões */}
+              {sugestoesPessoas.length > 0 && (
+                <ul className="absolute z-10 w-full mt-1 bg-background border border-input rounded-md shadow-lg">
+                  {sugestoesPessoas.map((p) => (
+                    <li
+                      key={p.IDPES}
+                      onClick={() => {
+                        setPessoaFiltro(p.IDPES); // ID para o filtro de filmes
+                        setTextoBuscaPessoa(p.NOMPES); // Nome para o input
+                        setSugestoesPessoas([]); // Fecha a lista
+                      }}
+                      className="px-3 py-2 hover:bg-accent cursor-pointer text-sm border-b last:border-0"
+                    >
+                      {p.NOMPES}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         </div>
 

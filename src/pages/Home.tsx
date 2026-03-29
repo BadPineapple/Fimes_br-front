@@ -154,7 +154,7 @@ const Home = () => {
                   <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjA4KSIvPjwvc3ZnPg==')] opacity-50" />
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
                     <span className="text-3xl">{genero.icone}</span>
-                    <span className="text-sm font-bold uppercase tracking-wider text-primary-foreground bg-card/90 dark:bg-card/80 text-foreground px-3 py-1.5 rounded-md shadow-sm">
+                    <span className="text-sm font-bold uppercase tracking-wider text-foreground bg-card/95 dark:bg-card/90 px-3 py-1.5 rounded-md shadow-sm">
                       {genero.nome}
                     </span>
                   </div>

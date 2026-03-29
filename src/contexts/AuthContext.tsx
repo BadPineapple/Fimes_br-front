@@ -13,6 +13,8 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  isAdmin: boolean;
+  isModerator: boolean;
   login: (email: string, senha: string) => Promise<void>;
   logout: () => void;
   loading: boolean;
@@ -73,8 +75,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     toast.info("Sessão encerrada com sucesso.");
   };
 
-  return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, logout, loading }}>
+  const isAdmin = user?.roles?.includes('admin') ?? false;
+  const isModerator = user?.roles?.includes('moderator') ?? false;
+
+    return (
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isAdmin, isModerator, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

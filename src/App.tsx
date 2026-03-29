@@ -10,6 +10,7 @@ import Footer from "@/components/Footer";
 import Home from "./pages/Home";
 import Filmes from "./pages/Filmes";
 import FilmeDetalhe from "./pages/FilmeDetalhe";
+import GeneroDetalhe from "./pages/GeneroDetalhe";
 import Indicacao from "./pages/Indicacao";
 import Apoio from "./pages/Apoio";
 import Entrar from "./pages/Entrar";

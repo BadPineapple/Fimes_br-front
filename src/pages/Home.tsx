@@ -41,6 +41,14 @@ const Home = () => {
   const [filmes, setFilmes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [bannerIndex, setBannerIndex] = useState(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  const scrollGeneros = (direction: "left" | "right") => {
+    if (carouselRef.current) {
+      const scrollAmount = 300;
+      carouselRef.current.scrollBy({ left: direction === "left" ? -scrollAmount : scrollAmount, behavior: "smooth" });
+    }
+  };
 
   useEffect(() => {
     const carregarDestaques = async () => {
@@ -114,6 +122,51 @@ const Home = () => {
                 className={`w-2.5 h-2.5 rounded-full transition-all ${i === bannerIndex ? "bg-secondary w-6" : "bg-primary-foreground/30"}`}
               />
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Gêneros Carousel */}
+      <section className="py-12 md:py-16 gradient-warm">
+        <div className="container mx-auto px-4">
+          <h2 className="font-display text-sm font-bold uppercase tracking-widest text-primary mb-6">
+            Explore por Categoria
+          </h2>
+          <div className="relative">
+            <button
+              onClick={() => scrollGeneros("left")}
+              className="absolute -left-2 md:-left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-card/90 shadow-md flex items-center justify-center text-foreground hover:bg-card transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <div
+              ref={carouselRef}
+              className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth px-2"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            >
+              {generos.map((genero) => (
+                <Link
+                  key={genero.nome}
+                  to={`/genero/${encodeURIComponent(genero.nome)}`}
+                  className="group flex-shrink-0 w-[160px] md:w-[200px] aspect-[4/3] relative rounded-xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/70 to-primary/30 group-hover:from-primary/80 group-hover:to-primary/40 transition-all duration-300" />
+                  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjA4KSIvPjwvc3ZnPg==')] opacity-50" />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                    <span className="text-3xl">{genero.icone}</span>
+                    <span className="text-sm font-bold uppercase tracking-wider text-primary-foreground bg-card/90 dark:bg-card/80 text-foreground px-3 py-1.5 rounded-md shadow-sm">
+                      {genero.nome}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            <button
+              onClick={() => scrollGeneros("right")}
+              className="absolute -right-2 md:-right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-card/90 shadow-md flex items-center justify-center text-foreground hover:bg-card transition-colors"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </section>

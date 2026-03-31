@@ -132,11 +132,13 @@ const Artistas = () => {
                 <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${
                   artista.tipo === "diretor"
                     ? "bg-primary/10 text-primary"
+                    : artista.tipo === "roteirista"
+                    ? "bg-chart-4/10 text-chart-4"
                     : artista.tipo === "ambos"
                     ? "bg-secondary/10 text-secondary"
                     : "bg-accent text-accent-foreground"
                 }`}>
-                  {artista.tipo === "ambos" ? "Ator & Diretor" : artista.tipo === "diretor" ? "Diretor(a)" : "Ator/Atriz"}
+                  {artista.tipo === "ambos" ? "Ator & Diretor" : artista.tipo === "diretor" ? "Diretor(a)" : artista.tipo === "roteirista" ? "Roteirista" : "Ator/Atriz"}
                 </span>
                 <p className="text-xs text-muted-foreground mt-1.5">
                   {artista.filmes} {artista.filmes === 1 ? "filme" : "filmes"}

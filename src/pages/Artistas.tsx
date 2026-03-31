@@ -24,6 +24,9 @@ const artistasLocais: Artista[] = [
   { nome: "Selton Mello", tipo: "ator", filmes: 1 },
   { nome: "Lázaro Ramos", tipo: "ator", filmes: 1 },
   { nome: "Seu Jorge", tipo: "ambos", filmes: 2 },
+  { nome: "Bráulio Mantovani", tipo: "roteirista", filmes: 2 },
+  { nome: "Jorge Furtado", tipo: "roteirista", filmes: 3 },
+  { nome: "Anna Muylaert", tipo: "roteirista", filmes: 2 },
 ];
 
 const Artistas = () => {

@@ -69,7 +69,7 @@ const Artistas = () => {
         <div className="container mx-auto px-4 text-center">
           <Users className="w-10 h-10 mx-auto mb-4 text-secondary" />
           <h1 className="font-display text-3xl md:text-4xl font-bold text-primary-foreground mb-3">
-            Atores & Diretores
+            Atores, Diretores & Roteiristas
           </h1>
           <p className="text-primary-foreground/70 max-w-lg mx-auto">
             Conheça os talentos que fazem o cinema brasileiro brilhar.

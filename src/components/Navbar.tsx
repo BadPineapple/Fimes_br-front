@@ -22,6 +22,7 @@ const Navbar = () => {
   const links = [
     { to: "/", label: "Home", icon: <Film className="w-4 h-4" /> },
     { to: "/filmes", label: "Filmes", icon: <Search className="w-4 h-4" /> },
+    { to: "/artistas", label: "Artistas", icon: <User className="w-4 h-4" /> },
     { to: "/indicacao", label: "Indicação", icon: <Sparkles className="w-4 h-4" /> },
     { to: "/apoio", label: "Apoio", icon: <Heart className="w-4 h-4" /> },
   ];

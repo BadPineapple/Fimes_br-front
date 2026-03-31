@@ -14,8 +14,10 @@ const Footer = () => (
 
         <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
           <Link to="/filmes" className="hover:text-foreground transition-colors">Filmes</Link>
+          <Link to="/artistas" className="hover:text-foreground transition-colors">Artistas</Link>
           <Link to="/indicacao" className="hover:text-foreground transition-colors">Indicação</Link>
           <Link to="/apoio" className="hover:text-foreground transition-colors">Apoio</Link>
+          <Link to="/contato" className="hover:text-foreground transition-colors">Contato</Link>
         </div>
 
         <p className="text-xs text-muted-foreground flex items-center gap-1">

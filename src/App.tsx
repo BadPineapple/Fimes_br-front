@@ -13,6 +13,8 @@ import FilmeDetalhe from "./pages/FilmeDetalhe";
 import GeneroDetalhe from "./pages/GeneroDetalhe";
 import Indicacao from "./pages/Indicacao";
 import Apoio from "./pages/Apoio";
+import Contato from "./pages/Contato";
+import Artistas from "./pages/Artistas";
 import Entrar from "./pages/Entrar";
 import Registrar from "./pages/Registrar";
 import Perfil from "./pages/Perfil";

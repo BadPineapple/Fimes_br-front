@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Users, Search, Film, Clapperboard, Loader2 } from "lucide-react";
+import { Users, Search, Film, Clapperboard, Loader2, PenTool } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import api from "@/services/api";
 

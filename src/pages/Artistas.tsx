@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Users, Search, Film, Clapperboard, Loader2, PenTool } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import api from "@/services/api";
+import { artistasCompletos } from "@/data/artistas";
 
 interface Artista {
   nome: string;

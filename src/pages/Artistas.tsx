@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Users, Search, Film, Clapperboard, Loader2 } from "lucide-react";
+import { Users, Search, Film, Clapperboard, Loader2, PenTool } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import api from "@/services/api";
 
 interface Artista {
   nome: string;
-  tipo: "ator" | "diretor" | "ambos";
+  tipo: "ator" | "diretor" | "roteirista" | "ambos";
   filmes: number;
   foto?: string;
 }
@@ -24,11 +24,14 @@ const artistasLocais: Artista[] = [
   { nome: "Selton Mello", tipo: "ator", filmes: 1 },
   { nome: "Lázaro Ramos", tipo: "ator", filmes: 1 },
   { nome: "Seu Jorge", tipo: "ambos", filmes: 2 },
+  { nome: "Bráulio Mantovani", tipo: "roteirista", filmes: 2 },
+  { nome: "Jorge Furtado", tipo: "roteirista", filmes: 3 },
+  { nome: "Anna Muylaert", tipo: "roteirista", filmes: 2 },
 ];
 
 const Artistas = () => {
   const [busca, setBusca] = useState("");
-  const [filtroTipo, setFiltroTipo] = useState<"todos" | "ator" | "diretor">("todos");
+  const [filtroTipo, setFiltroTipo] = useState<"todos" | "ator" | "diretor" | "roteirista">("todos");
   const [artistas, setArtistas] = useState<Artista[]>(artistasLocais);
   const [loading, setLoading] = useState(false);
 
@@ -49,7 +52,7 @@ const Artistas = () => {
 
   const filtrados = artistas.filter((a) => {
     const matchBusca = a.nome.toLowerCase().includes(busca.toLowerCase());
-    const matchTipo = filtroTipo === "todos" || a.tipo === filtroTipo || (filtroTipo === "ator" && a.tipo === "ambos") || (filtroTipo === "diretor" && a.tipo === "ambos");
+    const matchTipo = filtroTipo === "todos" || a.tipo === filtroTipo || (a.tipo === "ambos" && (filtroTipo === "ator" || filtroTipo === "diretor"));
     return matchBusca && matchTipo;
   });
 
@@ -57,6 +60,7 @@ const Artistas = () => {
     { key: "todos", label: "Todos", icon: <Users className="w-4 h-4" /> },
     { key: "ator", label: "Atores", icon: <Film className="w-4 h-4" /> },
     { key: "diretor", label: "Diretores", icon: <Clapperboard className="w-4 h-4" /> },
+    { key: "roteirista", label: "Roteiristas", icon: <PenTool className="w-4 h-4" /> },
   ] as const;
 
   return (
@@ -65,7 +69,7 @@ const Artistas = () => {
         <div className="container mx-auto px-4 text-center">
           <Users className="w-10 h-10 mx-auto mb-4 text-secondary" />
           <h1 className="font-display text-3xl md:text-4xl font-bold text-primary-foreground mb-3">
-            Atores & Diretores
+            Atores, Diretores & Roteiristas
           </h1>
           <p className="text-primary-foreground/70 max-w-lg mx-auto">
             Conheça os talentos que fazem o cinema brasileiro brilhar.
@@ -128,11 +132,13 @@ const Artistas = () => {
                 <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${
                   artista.tipo === "diretor"
                     ? "bg-primary/10 text-primary"
+                    : artista.tipo === "roteirista"
+                    ? "bg-chart-4/10 text-chart-4"
                     : artista.tipo === "ambos"
                     ? "bg-secondary/10 text-secondary"
                     : "bg-accent text-accent-foreground"
                 }`}>
-                  {artista.tipo === "ambos" ? "Ator & Diretor" : artista.tipo === "diretor" ? "Diretor(a)" : "Ator/Atriz"}
+                  {artista.tipo === "ambos" ? "Ator & Diretor" : artista.tipo === "diretor" ? "Diretor(a)" : artista.tipo === "roteirista" ? "Roteirista" : "Ator/Atriz"}
                 </span>
                 <p className="text-xs text-muted-foreground mt-1.5">
                   {artista.filmes} {artista.filmes === 1 ? "filme" : "filmes"}

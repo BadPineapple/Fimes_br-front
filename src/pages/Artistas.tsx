@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Users, Search, Film, Clapperboard, Loader2, PenTool } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import api from "@/services/api";
+import { artistasCompletos } from "@/data/artistas";
 
 interface Artista {
   nome: string;
@@ -118,10 +119,15 @@ const Artistas = () => {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {filtrados.map((artista, i) => (
-              <div
+            {filtrados.map((artista, i) => {
+              const slug = artistasCompletos.find(a => a.nome === artista.nome)?.id;
+              const Wrapper = slug ? Link : "div" as any;
+              const wrapperProps = slug ? { to: `/artista/${slug}` } : {};
+              return (
+              <Wrapper
                 key={i}
-                className="group rounded-xl border border-border bg-card p-4 text-center hover:shadow-card-hover hover:border-secondary/30 transition-all cursor-pointer"
+                {...wrapperProps}
+                className="group rounded-xl border border-border bg-card p-4 text-center hover:shadow-card-hover hover:border-secondary/30 transition-all cursor-pointer block"
               >
                 <div className="w-20 h-20 mx-auto mb-3 rounded-full bg-muted flex items-center justify-center text-2xl font-bold text-muted-foreground/60 group-hover:bg-secondary/10 group-hover:text-secondary transition-colors">
                   {artista.nome.split(" ").map((n) => n[0]).join("").slice(0, 2)}
@@ -143,8 +149,9 @@ const Artistas = () => {
                 <p className="text-xs text-muted-foreground mt-1.5">
                   {artista.filmes} {artista.filmes === 1 ? "filme" : "filmes"}
                 </p>
-              </div>
-            ))}
+              </Wrapper>
+              );
+            })}
           </div>
         )}
       </div>

@@ -15,6 +15,7 @@ import Indicacao from "./pages/Indicacao";
 import Apoio from "./pages/Apoio";
 import Contato from "./pages/Contato";
 import Artistas from "./pages/Artistas";
+import ArtistaDetalhe from "./pages/ArtistaDetalhe";
 import Entrar from "./pages/Entrar";
 import Registrar from "./pages/Registrar";
 import Perfil from "./pages/Perfil";
@@ -52,6 +53,7 @@ const App = () => (
                 <Route path="/apoio" element={<Apoio />} />
                 <Route path="/contato" element={<Contato />} />
                 <Route path="/artistas" element={<Artistas />} />
+                <Route path="/artista/:id" element={<ArtistaDetalhe />} />
                 <Route path="/entrar" element={<Entrar />} />
                 <Route path="/registrar" element={<Registrar />} />
                 <Route path="/perfil" element={<Perfil />} />

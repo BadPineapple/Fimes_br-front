@@ -149,8 +149,9 @@ const Artistas = () => {
                 <p className="text-xs text-muted-foreground mt-1.5">
                   {artista.filmes} {artista.filmes === 1 ? "filme" : "filmes"}
                 </p>
-              </div>
-            ))}
+              </Wrapper>
+              );
+            })}
           </div>
         )}
       </div>

@@ -6,7 +6,7 @@ import api from "@/services/api";
 
 interface Artista {
   nome: string;
-  tipo: "ator" | "diretor" | "ambos";
+  tipo: "ator" | "diretor" | "roteirista" | "ambos";
   filmes: number;
   foto?: string;
 }

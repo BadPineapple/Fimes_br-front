@@ -31,7 +31,7 @@ const artistasLocais: Artista[] = [
 
 const Artistas = () => {
   const [busca, setBusca] = useState("");
-  const [filtroTipo, setFiltroTipo] = useState<"todos" | "ator" | "diretor">("todos");
+  const [filtroTipo, setFiltroTipo] = useState<"todos" | "ator" | "diretor" | "roteirista">("todos");
   const [artistas, setArtistas] = useState<Artista[]>(artistasLocais);
   const [loading, setLoading] = useState(false);
 

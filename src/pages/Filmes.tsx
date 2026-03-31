@@ -27,6 +27,8 @@ const Filmes = () => {
   // Filtros
   const [busca, setBusca] = useState("");
   const [generoFiltro, setGeneroFiltro] = useState("");
+  const [plataformaFiltro, setPlataformaFiltro] = useState(""); 
+  const [pessoaFiltro, setPessoaFiltro] = useState(""); 
   const [anoFiltro, setAnoFiltro] = useState("");
   const [ordenarPor, setOrdenarPor] = useState("nome_asc");
 
@@ -39,6 +41,9 @@ const Filmes = () => {
         if (busca) params.append("titulo", busca);
         if (generoFiltro) params.append("genero", generoFiltro);
         if (anoFiltro) params.append("ano", anoFiltro);
+        if (plataformaFiltro) params.append("plataforma", plataformaFiltro);
+        if (pessoaFiltro) params.append("pessoa", pessoaFiltro);
+        if (ordenarPor) params.append("ordenarPor", ordenarPor);
 
         // Ordenação baseada na tab ativa
         let sort = ordenarPor;
@@ -48,9 +53,11 @@ const Filmes = () => {
         else if (activeTab === "classicos") sort = "ano_asc";
         params.append("ordenarPor", sort);
 
-        const [resFilmes, resGeneros] = await Promise.all([
+        const [resFilmes, resGeneros, resPlataformas, resPessoas] = await Promise.all([
           api.get(`/filmes?${params.toString()}`),
           api.get("/opcoes/generos"),
+          api.get("/opcoes/plataformas"),
+          api.get("/opcoes/pessoas")
         ]);
 
         let filmesData = resFilmes.data;
@@ -63,7 +70,6 @@ const Filmes = () => {
         setFilmes(filmesData);
         setGeneros(resGeneros.data);
         setPlataformas(resPlataformas.data); 
-        setTags(resTags.data);
       } catch (err) {
         console.error("Erro ao carregar dados:", err);
         setErro("Não foi possível carregar o catálogo de filmes.");

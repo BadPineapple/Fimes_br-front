@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Edit2, Trash2, Film, Loader2, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Plus, Search, Edit2, Trash2, Film, Loader2, X, Upload } from "lucide-react";import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import api from "@/services/api";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const AdminFilmes = () => {
   const [filmes, setFilmes] = useState<any[]>([]);
@@ -19,7 +20,6 @@ const AdminFilmes = () => {
   const [imagemFile, setImagemFile] = useState<File | null>(null);
   const [imagemPreview, setImagemPreview] = useState<string | null>(null);
 
-  // Estados para as listas do Banco de Dados (para preencher os selects)
   const [dbGeneros, setDbGeneros] = useState<any[]>([]);
   const [dbPessoas, setDbPessoas] = useState<any[]>([]);
   const [dbPlataformas, setDbPlataformas] = useState<any[]>([]);
@@ -30,7 +30,7 @@ const AdminFilmes = () => {
     ano: "", 
     nota_externa: "", 
     sinopse: "", 
-    imagens: "",
+    idImagem: null as number | null,
     generos: [] as string[],
     diretores: [] as string[],
     elenco: [] as string[],
@@ -83,7 +83,7 @@ const AdminFilmes = () => {
   const openNew = () => {
     setEditingFilme(null);
     setForm({ 
-      titulo: "", ano: "", nota_externa: "", sinopse: "", imagens: "", 
+      titulo: "", ano: "", nota_externa: "", sinopse: "", idImagem: null,
       generos: [], diretores: [], elenco: [], plataformas: [] 
     });
     setImagemFile(null);
@@ -103,31 +103,27 @@ const AdminFilmes = () => {
       ano: filme.ANO ? String(filme.ANO) : "",
       nota_externa: filme.NOTEXT ? String(filme.NOTEXT) : "",
       sinopse: filme.SINOPSE || "",
-      imagens: filme.IMAGEM || "", 
-      generos: filme.GENEROS?.map((g: any) => g.NOMGEN) || [],
-      diretores: diretores.length > 0 ? diretores : (filme.DIRETORES?.map((d: any) => d.NOMPES) || []), // Fallback
-      elenco: atores,
+      idImagem: filme.IMAGEM || null,
+      generos: Array.isArray(filme.GENEROS) ? filme.GENEROS.map((g: any) => g.NOMGEN) : (filme.GENEROS?.split(',') || []),
+      diretores: filme.DIRETORES?.filter((p: any) => p.CARGO === 'Diretor').map((d: any) => d.NOMPES) || [],
+      elenco: filme.DIRETORES?.filter((p: any) => p.CARGO === 'Ator').map((d: any) => d.NOMPES) || [],
       plataformas: filme.PLATAFORMAS?.map((p: any) => p.NOMPLA) || [],
     });
     
     setImagemFile(null);
-    // O preview usa a URL processada pelo JOIN (URL_IMAGEM)
-    setImagemPreview(filme.URL_IMAGEM || null); 
+    const localImg = filme.IMAGEM?.[0]?.LOCAL || filme.CAMINHO_IMAGEM;
+    setImagemPreview(localImg ? `${API_BASE_URL}${localImg}` : null);
     setDialogOpen(true);
   };
 
   const handleSave = async () => {
-    if (!form.titulo || !form.ano) {
-      toast.error("Título e Ano são obrigatórios!");
-      return;
-    }
+    if (!form.titulo || !form.ano) return toast.error("Título e Ano são obrigatórios!");
 
-    setLoading(true); // Bloqueia o botão para evitar duplicação
-
+    setLoading(true);
     try {
-      let idImagemFinal = form.imagens;
+      let idImagemFinal = form.idImagem;
 
-      // 1. FAZ O UPLOAD DA IMAGEM PRIMEIRO (se o utilizador selecionou um ficheiro novo)
+      // 1. Upload da Imagem se houver novo arquivo
       if (imagemFile) {
         const formData = new FormData();
         formData.append('imagem', imagemFile);
@@ -144,11 +140,11 @@ const AdminFilmes = () => {
         idImagemFinal = uploadResponse.data.idImagem; 
       }
 
-      // 2. MONTA O PAYLOAD DO FILME COM O ID DA IMAGEM ATUALIZADO
+      // 2. Payload para o filmeController.js
       const payload = {
         titulo: form.titulo,
         ano: Number(form.ano),
-        nota_externa: form.nota_externa ? parseFloat(form.nota_externa) : null,
+        nota_externa: parseFloat(form.nota_externa),
         sinopse: form.sinopse,
         idImagem: idImagemFinal, 
         generos: form.generos,
@@ -169,11 +165,7 @@ const AdminFilmes = () => {
       fetchFilmes();
       fetchListasSecundarias(); 
     } catch (error: any) {
-      console.error("Erro detalhado do backend:", error.response?.data || error);
-      const mensagemErro = error.response?.data?.detalhe 
-                        || error.response?.data?.erro 
-                        || "Erro desconhecido ao salvar o filme.";
-      toast.error(`Falha: ${mensagemErro}`);
+      toast.error(error.response?.data?.erro || "Erro ao salvar");
     } finally {
       setLoading(false);
     }
@@ -192,18 +184,19 @@ const AdminFilmes = () => {
 
   // --- SUB-COMPONENTE: Gerenciador de Relações ---
   const SeletorRelacional = ({ titulo, itens, opcoesDb, campoNome, campoState }: any) => {
-    const [novoValor, setNovoValor] = useState("");
+    const [inputValue, setInputValue] = useState("");
 
-    const adicionar = (valor: string) => {
+    const adicionar = () => {
+      const valor = inputValue.trim();
       if (!valor.trim() || itens.includes(valor.trim())) return;
-      setForm(prev => ({ ...prev, [campoState]: [...prev[campoState as keyof typeof prev], valor.trim()] }));
-      setNovoValor("");
+      setForm(prev => ({ ...prev, [campoState]: [...(prev[campoState as keyof typeof prev], valor.trim())] }));
+      setInputValue("");
     };
 
     const remover = (valor: string) => {
-      setForm(prev => ({ 
-        ...prev, 
-        [campoState]: (prev[campoState as keyof typeof prev] as string[]).filter(i => i !== valor) 
+      setForm(prev => ({
+        ...prev,
+        [campoState]: (prev[campoState as keyof typeof form] as string[]).filter(i => i !== valor)
       }));
     };
 
@@ -229,7 +222,7 @@ const AdminFilmes = () => {
           <select 
             className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             onChange={(e) => {
-              if (e.target.value) adicionar(e.target.value);
+              if (e.target.value) adicionar();
               e.target.value = ""; // Reseta o select após escolher
             }}
             defaultValue=""
@@ -243,12 +236,12 @@ const AdminFilmes = () => {
           <div className="flex gap-2 w-full">
             <Input 
               placeholder="Ou crie um novo..." 
-              value={novoValor} 
-              onChange={e => setNovoValor(e.target.value)} 
-              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), adicionar(novoValor))}
+              value={inputValue} 
+              onChange={e => setInputValue(e.target.value)} 
+              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), adicionar())}
               className="h-9"
             />
-            <Button type="button" size="sm" onClick={() => adicionar(novoValor)}>Add</Button>
+            <Button type="button" size="sm" onClick={() => adicionar()}>Add</Button>
           </div>
         </div>
       </div>
@@ -381,7 +374,6 @@ const AdminFilmes = () => {
                       <tr key={filme.IDFIL} className="hover:bg-muted/30 transition-colors">
                         <td className="px-4 py-3 font-medium text-foreground">
                           <div className="flex items-center gap-3">
-                            {filme.IMAGEM ? <img src={filme.IMAGEM} alt={filme.NOMFIL} className="w-8 h-12 rounded object-cover" /> : <div className="w-8 h-12 rounded bg-muted flex items-center justify-center"><Film className="w-4 h-4 text-muted-foreground" /></div>}
                             <span className="line-clamp-2">{filme.NOMFIL}</span>
                           </div>
                         </td>

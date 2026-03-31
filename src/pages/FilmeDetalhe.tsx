@@ -6,6 +6,8 @@ import FilmeSidebar from "@/components/FilmeSidebar";
 import { useState, useEffect } from "react";
 import api from "@/services/api";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 const FilmeDetalhe = () => {
   const { id } = useParams();
   
@@ -19,7 +21,6 @@ const FilmeDetalhe = () => {
     const carregarFilme = async () => {
       try {
         setLoading(true);
-        // Certifique-se que sua rota GET /filmes/:id faz os JOINs com tblgen e tblpes
         const response = await api.get(`/filmes/${id}`);
         setFilme(response.data);
       } catch (err) {
@@ -62,8 +63,12 @@ const FilmeDetalhe = () => {
             <div className="grid md:grid-cols-[300px_1fr] gap-8 mb-12">
               {/* Poster */}
               <div className="aspect-[2/3] rounded-xl overflow-hidden bg-card border border-border flex items-center justify-center shadow-card">
-                {filme.imagens ? (
-                  <img src={filme.IMAGEM} alt={filme.NOMFIL} className="w-full h-full object-cover" />
+                {filme.IMAGEM && filme.IMAGEM.length > 0 ? (
+                  <img 
+                    src={`${API_BASE_URL}${filme.IMAGEM[0].LOCAL}`} 
+                    alt={filme.NOMFIL} 
+                    className="w-full h-full object-cover" 
+                  />
                 ) : (
                   <FilmIcon className="w-20 h-20 text-primary/25" />
                 )}
@@ -102,7 +107,7 @@ const FilmeDetalhe = () => {
                 </div>
 
 
-                {filme.sinopse && (
+                {filme.SINOPSE && (
                   <div>
                     <h2 className="font-display text-xl font-semibold text-primary mb-2">Sinopse</h2>
                     <p className="text-foreground/80 leading-relaxed">{filme.SINOPSE}</p>

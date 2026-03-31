@@ -52,7 +52,7 @@ const Artistas = () => {
 
   const filtrados = artistas.filter((a) => {
     const matchBusca = a.nome.toLowerCase().includes(busca.toLowerCase());
-    const matchTipo = filtroTipo === "todos" || a.tipo === filtroTipo || (filtroTipo === "ator" && a.tipo === "ambos") || (filtroTipo === "diretor" && a.tipo === "ambos");
+    const matchTipo = filtroTipo === "todos" || a.tipo === filtroTipo || (a.tipo === "ambos" && (filtroTipo === "ator" || filtroTipo === "diretor"));
     return matchBusca && matchTipo;
   });
 
@@ -60,6 +60,7 @@ const Artistas = () => {
     { key: "todos", label: "Todos", icon: <Users className="w-4 h-4" /> },
     { key: "ator", label: "Atores", icon: <Film className="w-4 h-4" /> },
     { key: "diretor", label: "Diretores", icon: <Clapperboard className="w-4 h-4" /> },
+    { key: "roteirista", label: "Roteiristas", icon: <PenTool className="w-4 h-4" /> },
   ] as const;
 
   return (

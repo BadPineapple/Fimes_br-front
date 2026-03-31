@@ -13,6 +13,8 @@ import FilmeDetalhe from "./pages/FilmeDetalhe";
 import GeneroDetalhe from "./pages/GeneroDetalhe";
 import Indicacao from "./pages/Indicacao";
 import Apoio from "./pages/Apoio";
+import Contato from "./pages/Contato";
+import Artistas from "./pages/Artistas";
 import Entrar from "./pages/Entrar";
 import Registrar from "./pages/Registrar";
 import Perfil from "./pages/Perfil";
@@ -48,6 +50,8 @@ const App = () => (
                 <Route path="/genero/:nome" element={<GeneroDetalhe />} />
                 <Route path="/indicacao" element={<Indicacao />} />
                 <Route path="/apoio" element={<Apoio />} />
+                <Route path="/contato" element={<Contato />} />
+                <Route path="/artistas" element={<Artistas />} />
                 <Route path="/entrar" element={<Entrar />} />
                 <Route path="/registrar" element={<Registrar />} />
                 <Route path="/perfil" element={<Perfil />} />

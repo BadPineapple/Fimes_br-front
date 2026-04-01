@@ -37,6 +37,9 @@ const AdminArtistas = () => {
   const [imagemFile, setImagemFile] = useState<File | null>(null);
   const [imagemPreview, setImagemPreview] = useState<string | null>(null);
 
+  const [filmografia, setFilmografia] = useState<FilmografiaItem[]>([]);
+  const [novoFilme, setNovoFilme] = useState<FilmografiaItem>({ titulo: "", ano: "", papel: "", cargo: "Ator" });
+
   const [form, setForm] = useState({
     nome: "",
     tipo: "ator",

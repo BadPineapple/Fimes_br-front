@@ -96,6 +96,15 @@ const AdminArtistas = () => {
       biografia: artista.BIOGRAFIA || artista.biografia || "",
       idImagem: artista.IMAGEM || null,
     });
+    // Carrega filmografia existente
+    const filmo = artista.FILMOGRAFIA || artista.filmografia || [];
+    setFilmografia(filmo.map((f: any) => ({
+      titulo: f.titulo || f.NOMFIL || "",
+      ano: String(f.ano || f.ANO || ""),
+      papel: f.papel || f.PAPEL || "",
+      cargo: f.cargo || f.CARGO || "Ator",
+    })));
+    setNovoFilme({ titulo: "", ano: "", papel: "", cargo: "Ator" });
     setImagemFile(null);
     const localImg = artista.IMAGEM?.[0]?.LOCAL || artista.CAMINHO_IMAGEM || artista.foto;
     setImagemPreview(localImg ? (localImg.startsWith("http") ? localImg : `${API_BASE_URL}${localImg}`) : null);

@@ -2,7 +2,7 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard, Film, Users, Flag, BarChart3, Settings,
-  ChevronLeft, Menu, LogOut
+  ChevronLeft, Menu, LogOut, UserCircle
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 const menuItems = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/admin/filmes", label: "Filmes", icon: Film },
+  { to: "/admin/artistas", label: "Artistas", icon: UserCircle },
   { to: "/admin/usuarios", label: "Usuários", icon: Users },
   { to: "/admin/denuncias", label: "Denúncias", icon: Flag },
   { to: "/admin/metricas", label: "Métricas", icon: BarChart3 },

@@ -30,6 +30,7 @@ import AdminUsuarios from "./pages/admin/AdminUsuarios";
 import AdminDenuncias from "./pages/admin/AdminDenuncias";
 import AdminMetricas from "./pages/admin/AdminMetricas";
 import AdminConfiguracoes from "./pages/admin/AdminConfiguracoes";
+import AdminArtistas from "./pages/admin/AdminArtistas";
 
 const queryClient = new QueryClient();
 
@@ -63,6 +64,7 @@ const App = () => (
                 <Route path="/admin" element={<AdminLayout />}>
                   <Route index element={<AdminDashboard />} />
                   <Route path="filmes" element={<AdminFilmes />} />
+                  <Route path="artistas" element={<AdminArtistas />} />
                   <Route path="usuarios" element={<AdminUsuarios />} />
                   <Route path="denuncias" element={<AdminDenuncias />} />
                   <Route path="metricas" element={<AdminMetricas />} />

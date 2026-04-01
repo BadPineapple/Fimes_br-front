@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 const menuItems = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/admin/filmes", label: "Filmes", icon: Film },
+  { to: "/admin/artistas", label: "Artistas", icon: UserCircle },
   { to: "/admin/usuarios", label: "Usuários", icon: Users },
   { to: "/admin/denuncias", label: "Denúncias", icon: Flag },
   { to: "/admin/metricas", label: "Métricas", icon: BarChart3 },

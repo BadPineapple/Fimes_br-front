@@ -280,6 +280,79 @@ const AdminArtistas = () => {
                   <Label htmlFor="biografia" className="text-right pt-2 font-semibold">Biografia</Label>
                   <Textarea id="biografia" value={form.biografia} onChange={(e) => setForm({ ...form, biografia: e.target.value })} className="col-span-3 min-h-[120px]" />
                 </div>
+                {/* Filmografia */}
+                <div className="border-t pt-5 mt-2">
+                  <Label className="text-sm font-semibold text-primary flex items-center gap-2 mb-3">
+                    <Film className="w-4 h-4" /> Filmografia
+                  </Label>
+
+                  {/* Lista de filmes adicionados */}
+                  {filmografia.length > 0 && (
+                    <div className="space-y-2 mb-4">
+                      {filmografia.map((item, idx) => (
+                        <div key={idx} className="flex items-center gap-2 bg-muted/30 rounded-lg px-3 py-2 border border-border/50">
+                          <div className="flex-1 min-w-0">
+                            <span className="text-sm font-medium text-foreground">{item.titulo}</span>
+                            <span className="text-xs text-muted-foreground ml-2">({item.ano})</span>
+                            <div className="flex gap-2 mt-0.5">
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0">{item.cargo}</Badge>
+                              {item.papel && <span className="text-xs text-muted-foreground">como {item.papel}</span>}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => setFilmografia(filmografia.filter((_, i) => i !== idx))}
+                            className="p-1 rounded hover:bg-destructive/10 text-destructive"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Formulário para adicionar novo filme */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      placeholder="Título do filme"
+                      value={novoFilme.titulo}
+                      onChange={(e) => setNovoFilme({ ...novoFilme, titulo: e.target.value })}
+                      className="col-span-2"
+                    />
+                    <Input
+                      placeholder="Ano"
+                      type="number"
+                      value={novoFilme.ano}
+                      onChange={(e) => setNovoFilme({ ...novoFilme, ano: e.target.value })}
+                    />
+                    <select
+                      value={novoFilme.cargo}
+                      onChange={(e) => setNovoFilme({ ...novoFilme, cargo: e.target.value })}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      {cargoOptions.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                    <Input
+                      placeholder="Papel / Personagem (opcional)"
+                      value={novoFilme.papel}
+                      onChange={(e) => setNovoFilme({ ...novoFilme, papel: e.target.value })}
+                      className="col-span-2"
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="col-span-2 gap-2"
+                      onClick={() => {
+                        if (!novoFilme.titulo) return toast.error("Informe o título do filme.");
+                        setFilmografia([...filmografia, { ...novoFilme }]);
+                        setNovoFilme({ titulo: "", ano: "", papel: "", cargo: "Ator" });
+                      }}
+                    >
+                      <Plus className="w-4 h-4" /> Adicionar à Filmografia
+                    </Button>
+                  </div>
+                </div>
               </div>
 
               <div className="flex justify-end gap-3 mt-6 border-t pt-4">

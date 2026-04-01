@@ -139,6 +139,12 @@ const AdminArtistas = () => {
         naturalidade: form.naturalidade,
         biografia: form.biografia,
         idImagem: idImagemFinal,
+        filmografia: filmografia.map((f) => ({
+          titulo: f.titulo,
+          ano: Number(f.ano) || null,
+          papel: f.papel,
+          cargo: f.cargo,
+        })),
       };
 
       if (editingArtista) {

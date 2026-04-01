@@ -43,15 +43,13 @@ const Filmes = () => {
         if (anoFiltro) params.append("ano", anoFiltro);
         if (plataformaFiltro) params.append("plataforma", plataformaFiltro);
         if (pessoaFiltro) params.append("pessoa", pessoaFiltro);
-        if (ordenarPor) params.append("ordenarPor", ordenarPor);
-
-        // Ordenação baseada na tab ativa
+        
         let sort = ordenarPor;
         if (activeTab === "recentes") sort = "ano_desc";
-        else if (activeTab === "populares") sort = "nota_desc";
-        else if (activeTab === "bem_avaliados") sort = "nota_desc";
+        else if (activeTab === "populares" || activeTab === "bem_avaliados") sort = "nota_desc";
         else if (activeTab === "classicos") sort = "ano_asc";
-        params.append("ordenarPor", sort);
+        
+        params.set("ordenarPor", sort);
 
         const [resFilmes, resGeneros, resPlataformas, resPessoas] = await Promise.all([
           api.get(`/filmes?${params.toString()}`),
@@ -64,7 +62,11 @@ const Filmes = () => {
 
         // Filtro local por tab
         if (activeTab === "classicos") {
-          filmesData = filmesData.filter((f: any) => (f.ANOLAN || f.ano) <= 2000);
+          filmesData = filmesData.filter((f: any) => f.ANO <= 2000);
+        }
+        
+        if (activeTab === "bem_avaliados"){
+          filmesData = filmesData.filter((f: any) => f.NOTEXT >= 8.0);
         }
 
         setFilmes(filmesData);
@@ -80,14 +82,16 @@ const Filmes = () => {
 
     const timeoutId = setTimeout(() => carregarDados(), 500);
     return () => clearTimeout(timeoutId);
-  }, [busca, generoFiltro, anoFiltro, ordenarPor, activeTab]);
+  }, [busca, generoFiltro, anoFiltro, plataformaFiltro, pessoaFiltro, ordenarPor, activeTab]);
 
-  const activeFilters = [generoFiltro, anoFiltro, busca].filter(Boolean).length;
+  const activeFilters = [generoFiltro, anoFiltro, busca, plataformaFiltro].filter(Boolean).length;
 
   const clearFilters = () => {
     setBusca("");
     setGeneroFiltro("");
     setAnoFiltro("");
+    setPlataformaFiltro(""); 
+    setPessoaFiltro("");     
     setOrdenarPor("nome_asc");
   };
 
@@ -183,6 +187,20 @@ const Filmes = () => {
                     <option key={g.IDGEN} value={g.IDGEN}>{g.NOMGEN}</option>
                   ))}
                 </select>
+                {/* Filtro de Plataforma */}
+              <div className="flex-1 min-w-[160px]">
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Plataforma</label>
+                <select
+                  value={plataformaFiltro}
+                  onChange={(e) => setPlataformaFiltro(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value="">Todas</option>
+                  {plataformas.map((p: any) => (
+                    <option key={p.IDPLA} value={p.IDPLA}>{p.NOMPLA}</option>
+                  ))}
+                </select>
+              </div>
               </div>
 
               <div className="w-[140px]">
@@ -200,7 +218,10 @@ const Filmes = () => {
                 <label className="text-xs font-medium text-muted-foreground mb-1 block">Ordenar por</label>
                 <select
                   value={ordenarPor}
-                  onChange={(e) => setOrdenarPor(e.target.value)}
+                  onChange={(e) => {
+                    setOrdenarPor(e.target.value);
+                    setActiveTab("todos"); // Desativa abas forçadas para a ordenação manual funcionar
+                  }}
                   className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   <option value="nome_asc">Nome (A-Z)</option>

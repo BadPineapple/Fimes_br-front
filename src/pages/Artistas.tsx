@@ -3,47 +3,40 @@ import { Link } from "react-router-dom";
 import { Users, Search, Film, Clapperboard, Loader2, PenTool } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import api from "@/services/api";
-import { artistasCompletos } from "@/data/artistas";
 
-interface Artista {
-  nome: string;
-  tipo: "ator" | "diretor" | "roteirista" | "ambos";
-  filmes: number;
-  foto?: string;
+// 1. Atualizamos a interface para corresponder ao que vem do backend
+interface Filme {
+  titulo: string;
+  papel: string;
+  ano: number;
 }
 
-const artistasLocais: Artista[] = [
-  { nome: "Fernando Meirelles", tipo: "diretor", filmes: 1 },
-  { nome: "Walter Salles", tipo: "diretor", filmes: 1 },
-  { nome: "José Padilha", tipo: "diretor", filmes: 1 },
-  { nome: "Kleber Mendonça Filho", tipo: "diretor", filmes: 2 },
-  { nome: "Guel Arraes", tipo: "diretor", filmes: 1 },
-  { nome: "Fernanda Montenegro", tipo: "ator", filmes: 1 },
-  { nome: "Wagner Moura", tipo: "ator", filmes: 2 },
-  { nome: "Sônia Braga", tipo: "ator", filmes: 1 },
-  { nome: "Matheus Nachtergaele", tipo: "ator", filmes: 2 },
-  { nome: "Selton Mello", tipo: "ator", filmes: 1 },
-  { nome: "Lázaro Ramos", tipo: "ator", filmes: 1 },
-  { nome: "Seu Jorge", tipo: "ambos", filmes: 2 },
-  { nome: "Bráulio Mantovani", tipo: "roteirista", filmes: 2 },
-  { nome: "Jorge Furtado", tipo: "roteirista", filmes: 3 },
-  { nome: "Anna Muylaert", tipo: "roteirista", filmes: 2 },
-];
+interface Artista {
+  id: string | number; // Agora usamos o IDPES do banco
+  nome: string;
+  tipo: string; // ator, diretor, roteirista, etc.
+  filmografia: Filme[]; // A quantidade de filmes será o .length deste array
+}
 
 const Artistas = () => {
   const [busca, setBusca] = useState("");
   const [filtroTipo, setFiltroTipo] = useState<"todos" | "ator" | "diretor" | "roteirista">("todos");
-  const [artistas, setArtistas] = useState<Artista[]>(artistasLocais);
+  // 2. Iniciamos com um array vazio, já que não usamos mais dados mockados
+  const [artistas, setArtistas] = useState<Artista[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchArtistas = async () => {
       try {
         setLoading(true);
-        const res = await api.get("/artistas");
-        if (res.data?.length) setArtistas(res.data);
-      } catch {
-        // usa dados locais
+        // 3. Ajustamos a rota para apontar para o controller que criamos
+        const res = await api.get("/artista"); 
+        
+        if (res.data?.length) {
+          setArtistas(res.data);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar artistas da API:", error);
       } finally {
         setLoading(false);
       }
@@ -51,9 +44,16 @@ const Artistas = () => {
     fetchArtistas();
   }, []);
 
+  // 4. Lógica de filtro adaptada para garantir segurança contra nulos
   const filtrados = artistas.filter((a) => {
     const matchBusca = a.nome.toLowerCase().includes(busca.toLowerCase());
-    const matchTipo = filtroTipo === "todos" || a.tipo === filtroTipo || (a.tipo === "ambos" && (filtroTipo === "ator" || filtroTipo === "diretor"));
+    const tipoArtista = a.tipo ? a.tipo.toLowerCase() : "";
+    
+    const matchTipo = 
+      filtroTipo === "todos" || 
+      tipoArtista === filtroTipo || 
+      (tipoArtista === "ambos" && (filtroTipo === "ator" || filtroTipo === "diretor"));
+      
     return matchBusca && matchTipo;
   });
 
@@ -90,12 +90,12 @@ const Artistas = () => {
               className="pl-9"
             />
           </div>
-          <div className="flex gap-1 bg-muted rounded-lg p-1">
+          <div className="flex gap-1 bg-muted rounded-lg p-1 overflow-x-auto">
             {tabs.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setFiltroTipo(tab.key)}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                   filtroTipo === tab.key
                     ? "bg-card text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -119,37 +119,38 @@ const Artistas = () => {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {filtrados.map((artista, i) => {
-              const slug = artistasCompletos.find(a => a.nome === artista.nome)?.id;
-              const Wrapper = slug ? Link : "div" as any;
-              const wrapperProps = slug ? { to: `/artista/${slug}` } : {};
+            {filtrados.map((artista) => {
+              // 5. Calculamos o total de filmes lendo o tamanho do array filmografia
+              const totalFilmes = artista.filmografia ? artista.filmografia.length : 0;
+              const tipoArtista = artista.tipo ? artista.tipo.toLowerCase() : "";
+
               return (
-              <Wrapper
-                key={i}
-                {...wrapperProps}
-                className="group rounded-xl border border-border bg-card p-4 text-center hover:shadow-card-hover hover:border-secondary/30 transition-all cursor-pointer block"
-              >
-                <div className="w-20 h-20 mx-auto mb-3 rounded-full bg-muted flex items-center justify-center text-2xl font-bold text-muted-foreground/60 group-hover:bg-secondary/10 group-hover:text-secondary transition-colors">
-                  {artista.nome.split(" ").map((n) => n[0]).join("").slice(0, 2)}
-                </div>
-                <h3 className="font-semibold text-foreground text-sm leading-tight mb-1 line-clamp-2">
-                  {artista.nome}
-                </h3>
-                <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${
-                  artista.tipo === "diretor"
-                    ? "bg-primary/10 text-primary"
-                    : artista.tipo === "roteirista"
-                    ? "bg-chart-4/10 text-chart-4"
-                    : artista.tipo === "ambos"
-                    ? "bg-secondary/10 text-secondary"
-                    : "bg-accent text-accent-foreground"
-                }`}>
-                  {artista.tipo === "ambos" ? "Ator & Diretor" : artista.tipo === "diretor" ? "Diretor(a)" : artista.tipo === "roteirista" ? "Roteirista" : "Ator/Atriz"}
-                </span>
-                <p className="text-xs text-muted-foreground mt-1.5">
-                  {artista.filmes} {artista.filmes === 1 ? "filme" : "filmes"}
-                </p>
-              </Wrapper>
+                <Link
+                  key={artista.id}
+                  to={`/artista/${artista.id}`} // 6. O Link agora usa o ID real do banco!
+                  className="group rounded-xl border border-border bg-card p-4 text-center hover:shadow-card-hover hover:border-secondary/30 transition-all cursor-pointer block"
+                >
+                  <div className="w-20 h-20 mx-auto mb-3 rounded-full bg-muted flex items-center justify-center text-2xl font-bold text-muted-foreground/60 group-hover:bg-secondary/10 group-hover:text-secondary transition-colors uppercase">
+                    {artista.nome.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+                  </div>
+                  <h3 className="font-semibold text-foreground text-sm leading-tight mb-1 line-clamp-2" title={artista.nome}>
+                    {artista.nome}
+                  </h3>
+                  <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${
+                    tipoArtista === "diretor"
+                      ? "bg-primary/10 text-primary"
+                      : tipoArtista === "roteirista"
+                      ? "bg-chart-4/10 text-chart-4"
+                      : tipoArtista === "ambos"
+                      ? "bg-secondary/10 text-secondary"
+                      : "bg-accent text-accent-foreground"
+                  }`}>
+                    {tipoArtista === "ambos" ? "Ator & Diretor" : tipoArtista === "diretor" ? "Diretor(a)" : tipoArtista === "roteirista" ? "Roteirista" : "Ator/Atriz"}
+                  </span>
+                  <p className="text-xs text-muted-foreground mt-1.5">
+                    {totalFilmes} {totalFilmes === 1 ? "filme" : "filmes"}
+                  </p>
+                </Link>
               );
             })}
           </div>

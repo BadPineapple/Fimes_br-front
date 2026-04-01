@@ -2,7 +2,7 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard, Film, Users, Flag, BarChart3, Settings,
-  ChevronLeft, Menu, LogOut
+  ChevronLeft, Menu, LogOut, UserCircle
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";

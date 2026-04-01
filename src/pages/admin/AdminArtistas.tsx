@@ -19,6 +19,15 @@ const tipoOptions = [
   { value: "ambos", label: "Ator & Diretor" },
 ];
 
+const cargoOptions = ["Ator", "Atriz", "Diretor", "Diretora", "Roteirista", "Produtor", "Produtora"];
+
+interface FilmografiaItem {
+  titulo: string;
+  ano: string;
+  papel: string;
+  cargo: string;
+}
+
 const AdminArtistas = () => {
   const [artistas, setArtistas] = useState<any[]>([]);
   const [busca, setBusca] = useState("");

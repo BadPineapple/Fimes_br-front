@@ -30,6 +30,7 @@ import AdminUsuarios from "./pages/admin/AdminUsuarios";
 import AdminDenuncias from "./pages/admin/AdminDenuncias";
 import AdminMetricas from "./pages/admin/AdminMetricas";
 import AdminConfiguracoes from "./pages/admin/AdminConfiguracoes";
+import AdminArtistas from "./pages/admin/AdminArtistas";
 
 const queryClient = new QueryClient();
 

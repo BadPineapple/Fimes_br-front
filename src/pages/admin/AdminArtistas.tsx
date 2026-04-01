@@ -78,6 +78,8 @@ const AdminArtistas = () => {
   const openNew = () => {
     setEditingArtista(null);
     setForm({ nome: "", tipo: "ator", nascimento: "", falecimento: "", naturalidade: "", biografia: "", idImagem: null });
+    setFilmografia([]);
+    setNovoFilme({ titulo: "", ano: "", papel: "", cargo: "Ator" });
     setImagemFile(null);
     setImagemPreview(null);
     setDialogOpen(true);

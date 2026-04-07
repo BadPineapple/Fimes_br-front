@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import api from "@/services/api";
+import { socialApi } from '@/services/api';
 
 const Perfil = () => {
   const { user, logout } = useAuth();
@@ -44,7 +44,7 @@ const Perfil = () => {
       if (!user?.id) return;
       
       try {
-        const response = await api.get(`/perfil/${user.id}`);
+        const response = await socialApi.get(`/perfil/${user.id}`);
         
         const dados = response.data.perfil;
         const listasDoBanco = response.data.listas;
@@ -84,14 +84,14 @@ const Perfil = () => {
         formData.append('hint', `Foto de perfil de ${nome}`);
         formData.append('public', '1');
 
-        const uploadResponse = await api.post('/imagens/upload', formData, {
+        const uploadResponse = await socialApi.post('/imagens/upload', formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
 
         idImagemFinal = uploadResponse.data.idImagem; 
       }
 
-      await api.put(`/perfil/${user.id}`, {
+      await socialApi.put(`/perfil/${user.id}`, {
         nome: nome,
         descricao: descricao,
         foto_perfil: idImagemFinal 
@@ -118,7 +118,7 @@ const Perfil = () => {
 
     try {
       // Chama a rota do listController
-      const response = await api.post('/listas', {
+      const response = await socialApi.post('/listas', {
         nome: novaListaNome,
         descricao: novaListaDesc
       });

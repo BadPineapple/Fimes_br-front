@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, ArrowLeft, Film, Star, Clapperboard, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import FilmCard from "@/components/FilmCard";
-import api from "@/services/api";
+import { blogApi } from '@/services/api';
 
 const generos = [
   { nome: "Drama", icone: "🎭" },
@@ -53,7 +53,7 @@ const Home = () => {
   useEffect(() => {
     const carregarDestaques = async () => {
       try {
-        const response = await api.get("/filmes");
+        const response = await blogApi.get("/filmes");
         setFilmes(response.data);
       } catch (error) {
         console.error("Erro ao carregar filmes da Home:", error);

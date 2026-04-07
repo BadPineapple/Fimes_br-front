@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTrigger, DialogTitle } from 
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import api from "@/services/api";
+import { blogApi } from '@/services/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -52,7 +52,7 @@ const AdminFilmes = () => {
   const fetchFilmes = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/filmes');
+      const response = await blogApi.get('/filmes');
       setFilmes(response.data);
     } catch (error) {
       toast.error("Erro ao carregar os filmes.");
@@ -64,9 +64,9 @@ const AdminFilmes = () => {
   const fetchListasSecundarias = async () => {
     try {
       const [resGen, resPes, resPla] = await Promise.all([
-        api.get('/opcoes/generos'),
-        api.get('/opcoes/pessoas'),
-        api.get('/opcoes/plataformas')
+        blogApi.get('/opcoes/generos'),
+        blogApi.get('/opcoes/pessoas'),
+        blogApi.get('/opcoes/plataformas')
       ]);
       setDbGeneros(resGen.data);
       setDbPessoas(resPes.data);
@@ -132,7 +132,7 @@ const AdminFilmes = () => {
         formData.append('public', '1');
 
         // Faz o upload para a sua nova rota
-        const uploadResponse = await api.post('/img/upload', formData, {
+        const uploadResponse = await blogApi.post('/img/upload', formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
 
@@ -154,10 +154,10 @@ const AdminFilmes = () => {
       };
 
       if (editingFilme) {
-        await api.put(`/filmes/${editingFilme.IDFIL}`, payload);
+        await blogApi.put(`/filmes/${editingFilme.IDFIL}`, payload);
         toast.success("Filme atualizado com sucesso!");
       } else {
-        await api.post('/filmes', payload);
+        await blogApi.post('/filmes', payload);
         toast.success("Filme adicionado ao catálogo!");
       }
 
@@ -174,7 +174,7 @@ const AdminFilmes = () => {
   const handleDelete = async (id: number) => {
     if (!confirm("Tem certeza que deseja excluir permanentemente este filme?")) return;
     try {
-      await api.delete(`/filmes/${id}`);
+      await blogApi.delete(`/filmes/${id}`);
       toast.success("Filme removido com sucesso!");
       fetchFilmes();
     } catch (error) {

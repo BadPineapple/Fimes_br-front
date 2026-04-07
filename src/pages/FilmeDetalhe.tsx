@@ -4,7 +4,7 @@ import GenreBadge from "@/components/GenreBadge";
 import StarRating from "@/components/StarRating";
 import FilmeSidebar from "@/components/FilmeSidebar";
 import { useState, useEffect } from "react";
-import api from "@/services/api";
+import { blogApi } from '@/services/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -21,7 +21,7 @@ const FilmeDetalhe = () => {
     const carregarFilme = async () => {
       try {
         setLoading(true);
-        const response = await api.get(`/filmes/${id}`);
+        const response = await blogApi.get(`/filmes/${id}`);
         setFilme(response.data);
       } catch (err) {
         setErro("Não foi possível carregar as informações do filme.");

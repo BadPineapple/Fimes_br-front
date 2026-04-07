@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Users, Search, Film, Clapperboard, Loader2, PenTool } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import api from "@/services/api";
+import { blogApi } from '@/services/api';
 
 // 1. Atualizamos a interface para corresponder ao que vem do backend
 interface Filme {
@@ -30,7 +30,7 @@ const Artistas = () => {
       try {
         setLoading(true);
         // 3. Ajustamos a rota para apontar para o controller que criamos
-        const res = await api.get("/artista"); 
+        const res = await blogApi.get("/artista"); 
         
         if (res.data?.length) {
           setArtistas(res.data);

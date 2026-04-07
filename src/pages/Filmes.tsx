@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Search, Loader2, SlidersHorizontal, X } from "lucide-react";
 import FilmCard from "@/components/FilmCard";
-import api from "@/services/api";
+import { blogApi } from '@/services/api';
 
 const tabs = [
   { key: "todos", label: "Todos" },
@@ -52,10 +52,10 @@ const Filmes = () => {
         params.set("ordenarPor", sort);
 
         const [resFilmes, resGeneros, resPlataformas, resPessoas] = await Promise.all([
-          api.get(`/filmes?${params.toString()}`),
-          api.get("/opcoes/generos"),
-          api.get("/opcoes/plataformas"),
-          api.get("/opcoes/pessoas")
+          blogApi.get(`/filmes?${params.toString()}`),
+          blogApi.get("/opcoes/generos"),
+          blogApi.get("/opcoes/plataformas"),
+          blogApi.get("/opcoes/pessoas")
         ]);
 
         let filmesData = resFilmes.data;

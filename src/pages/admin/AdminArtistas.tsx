@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import api from "@/services/api";
+import { blogApi } from '@/services/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -45,10 +45,18 @@ const AdminArtistas = () => {
     filmografia: [] as any[] 
   });
 
+  const [novoFilme, setNovoFilme] = useState({ 
+    idfil: "", 
+    titulo: "", 
+    ano: "", 
+    papel: "", 
+    cargo: "Ator" 
+  });
+
   const fetchArtistas = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/artista");
+      const res = await blogApi.get("/artista");
       setArtistas(res.data);
     } catch (error) {
       console.error("Erro ao buscar artistas:", error);
@@ -67,7 +75,7 @@ const AdminArtistas = () => {
   useEffect(() => {
     const fetchFilmes = async () => {
       try {
-        const res = await api.get("/filmes"); 
+        const res = await blogApi.get("/filmes"); 
         setFilmesDisponiveis(res.data);
       } catch (error) {
         console.error("Erro ao carregar a lista de filmes", error);
@@ -101,27 +109,37 @@ const AdminArtistas = () => {
     });
     setImagemFile(null);
     setImagemPreview(null);
+    setNovoFilme({ idfil: "", titulo: "", ano: "", papel: "", cargo: "Ator" });
     setIsModalOpen(true);
   };
 
   // Trocado o parâmetro para "any" para aceitar o retorno direto do banco
   const openEdit = (artista: any) => {
-    setEditingId(artista.IDPES || artista.id);
+    setEditingId(artista.id || artista.IDPES);
     
+    // O backend mapeia f.NOMFIL para 'nome' dentro da filmografia. 
+    // Adaptamos para 'titulo' pro formulário frontend funcionar perfeitamente.
+    const filmografiaFormatada = (artista.filmografia || []).map((f: any) => ({
+      idfil: f.idfil,
+      titulo: f.nome || f.titulo, 
+      cargo: f.cargo || "",
+      papel: f.papel || ""
+    }));
+
     setForm({
-      nome: artista.NOMPES || artista.nome || "",
-      tipo: artista.CARGO || artista.tipo || "",
-      naturalidade: artista.NATU || artista.naturalidade || "",
-      nascimento: formatarDataInput(artista.DTANASC || artista.nascimento),
-      falecimento: formatarDataInput(artista.DTAFAL || artista.falecimento),
-      biografia: artista.BIO || artista.biografia || "",
-      idImagem: artista.IMG || artista.idImagem || null, 
-      filmografia: [], // Filmografia isolada por enquanto
+      nome: artista.nome || artista.NOMPES || "",
+      tipo: artista.tipo || artista.CARGO || "",
+      naturalidade: artista.naturalidade || artista.NATU || "",
+      nascimento: formatarDataInput(artista.nascimento || artista.DTANASC),
+      falecimento: formatarDataInput(artista.falecimento || artista.DTAFAL),
+      biografia: artista.biografia || artista.BIO || "",
+      idImagem: artista.idImagem || artista.IMG || null, 
+      filmografia: filmografiaFormatada,
     });
     
     setImagemFile(null);
+    setNovoFilme({ idfil: "", titulo: "", ano: "", papel: "", cargo: "Ator" });
     
-    // Mesma lógica de preview do AdminFilmes adaptada
     const localImg = artista.IMAGEM?.[0]?.LOCAL || artista.CAMINHO_IMAGEM || artista.foto;
     setImagemPreview(localImg ? `${API_BASE_URL}${localImg}` : null);
     
@@ -135,7 +153,6 @@ const AdminArtistas = () => {
     try {
       let idImagemFinal = form.idImagem;
 
-      // 1. Upload da Imagem (Exatamente igual ao AdminFilmes)
       if (imagemFile) {
         const formData = new FormData();
         formData.append('imagem', imagemFile);
@@ -143,14 +160,13 @@ const AdminArtistas = () => {
         formData.append('hint', `Foto do artista ${form.nome}`);
         formData.append('public', '1');
 
-        const uploadResponse = await api.post('/img/upload', formData, {
+        const uploadResponse = await blogApi.post('/img/upload', formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
 
         idImagemFinal = uploadResponse.data.idImagem; 
       }
 
-      // 2. Monta o Payload JSON (Sem a filmografia por enquanto)
       const payload = {
         nompes: form.nome,
         cargo: form.tipo,
@@ -159,15 +175,18 @@ const AdminArtistas = () => {
         naturalidade: form.naturalidade || null,
         biografia: form.biografia || null,
         idImagem: idImagemFinal,
-        // filmografia: [] -> Retirado do envio até você querer reativar
+        
+        filmografia: form.filmografia.map(f => ({
+          idfil: parseInt(f.idfil), 
+          papel: f.papel
+        }))
       };
 
-      // 3. Salva os dados do artista
       if (editingId) {
-        await api.put(`/artista/${editingId}`, payload);
+        await blogApi.put(`/artista/${editingId}`, payload);
         toast.success("Artista atualizado com sucesso!");
       } else {
-        await api.post("/artista", payload);
+        await blogApi.post("/artista", payload);
         toast.success("Artista criado com sucesso!");
       }
       
@@ -181,14 +200,13 @@ const AdminArtistas = () => {
     }
   };
 
-  // Trocado para any
   const handleDelete = async (artista: any) => {
     const nomeArtista = artista.NOMPES || artista.nome;
     const idArtista = artista.IDPES || artista.id;
 
     if (window.confirm(`Tem certeza que deseja excluir ${nomeArtista}?`)) {
       try {
-        await api.delete(`/artista/${idArtista}`);
+        await blogApi.delete(`/artista/${idArtista}`);
         toast.success("Artista excluído com sucesso!");
         fetchArtistas();
       } catch (error) {
@@ -196,6 +214,12 @@ const AdminArtistas = () => {
         toast.error("Erro ao excluir o artista.");
       }
     }
+  };
+
+  const removeFilmografia = (index: number) => {
+    const novaLista = [...form.filmografia];
+    novaLista.splice(index, 1);
+    setForm({ ...form, filmografia: novaLista });
   };
 
   const getTipoLabel = (tipo: string) => {
@@ -339,6 +363,119 @@ const AdminArtistas = () => {
                     className="col-span-3 min-h-[120px]" 
                   />
                 </div>
+
+                {/* ---------------- NOVA SEÇÃO: FILMOGRAFIA ---------------- */}
+                <div className="border-t pt-5 mt-2">
+                  <Label className="text-sm font-semibold text-primary flex items-center gap-2 mb-3">
+                    <Film className="w-4 h-4" /> Filmografia
+                  </Label>
+
+                  {/* Lista de filmes adicionados */}
+                  {form.filmografia.length > 0 && (
+                    <div className="space-y-2 mb-4">
+                      {form.filmografia.map((item, idx) => (
+                        <div key={idx} className="flex items-center gap-2 bg-muted/30 rounded-lg px-3 py-2 border border-border/50">
+                          <div className="flex-1 min-w-0">
+                            <span className="text-sm font-medium text-foreground">
+                              {item.titulo}
+                            </span>
+                            {item.ano && <span className="text-xs text-muted-foreground ml-2">({item.ano})</span>}
+                            <div className="flex gap-2 mt-0.5">
+                              {item.cargo && <Badge variant="outline" className="text-[10px] px-1.5 py-0">{item.cargo}</Badge>}
+                              {item.papel && <span className="text-xs text-muted-foreground">como {item.papel}</span>}
+                            </div>
+                          </div>
+                          <button
+                            type="button" 
+                            onClick={() => removeFilmografia(idx)}
+                            className="p-1 rounded hover:bg-destructive/10 text-destructive transition-colors"
+                            title="Remover filme"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Formulário para adicionar novo filme */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="col-span-2">
+                      <select
+                        value={novoFilme.idfil || ""}
+                        onChange={(e) => {
+                          const idSelecionado = e.target.value;
+                          const filmeEncontrado = filmesDisponiveis.find(
+                            (f) => (f.IDFIL?.toString() || f.id?.toString()) === idSelecionado
+                          );
+
+                          if (filmeEncontrado) {
+                            setNovoFilme({ 
+                              ...novoFilme, 
+                              idfil: filmeEncontrado.IDFIL || filmeEncontrado.id,
+                              titulo: filmeEncontrado.NOMFIL || filmeEncontrado.titulo,
+                              ano: filmeEncontrado.ANO || filmeEncontrado.ano
+                            });
+                          } else {
+                            setNovoFilme({ ...novoFilme, idfil: "", titulo: "", ano: "" });
+                          }
+                        }}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-primary/50"
+                      >
+                        <option value="" disabled>Selecione um filme...</option>
+                        {filmesDisponiveis.map((filme) => (
+                          <option key={filme.IDFIL || filme.id} value={filme.IDFIL || filme.id}>
+                            {filme.NOMFIL || filme.titulo} ({filme.ANO || filme.ano})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <select
+                      value={novoFilme.cargo || "Ator"}
+                      onChange={(e) => setNovoFilme({ ...novoFilme, cargo: e.target.value })}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      {cargoOptions.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                    
+                    <Input
+                      placeholder="Papel / Personagem"
+                      value={novoFilme.papel || ""}
+                      onChange={(e) => setNovoFilme({ ...novoFilme, papel: e.target.value })}
+                    />
+                    
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="col-span-2 gap-2 mt-1"
+                      onClick={() => {
+                        if (!novoFilme.idfil) return toast.error("Selecione um filme.");
+                        
+                        // Objeto construído de forma explícita
+                        const filmeParaAdicionar = {
+                          idfil: novoFilme.idfil,
+                          titulo: novoFilme.titulo,
+                          ano: novoFilme.ano,
+                          papel: novoFilme.papel,
+                          cargo: novoFilme.cargo
+                        };
+                        
+                        setForm({
+                          ...form,
+                          filmografia: [...form.filmografia, filmeParaAdicionar]
+                        });
+                        
+                        setNovoFilme({ idfil: "", titulo: "", ano: "", papel: "", cargo: "Ator" });
+                      }}
+                    >
+                      <Plus className="w-4 h-4" /> Adicionar à Filmografia
+                    </Button>
+                  </div>
+                </div>
+                {/* ---------------- FIM DA SEÇÃO: FILMOGRAFIA ---------------- */}
               </div>  
               
               <div className="flex justify-end gap-3 mt-6 border-t pt-4">
@@ -392,7 +529,6 @@ const AdminArtistas = () => {
                   ) : (
                     filteredArtistas.map((artista, idx) => (
                       <tr key={artista.IDPES || artista.id || idx} className="hover:bg-muted/30 transition-colors">
-                        {/* Adaptado para as colunas do banco (NOMPES, etc) com fallback */}
                         <td className="px-4 py-3 font-medium text-foreground">
                           {artista.NOMPES || artista.nome}
                         </td>

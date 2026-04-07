@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import api from "@/services/api";
+import { socialApi } from '@/services/api';
 
 type LoginMode = "credentials" | "email-code" | "forgot-password";
 
@@ -37,12 +37,12 @@ const Entrar = () => {
 
     try {
       // 1. Rota corrigida para bater exatamente com o seu loginRoutes.js
-      const response = await api.post('/auth/login', { email, senha });
+      const response = await socialApi.post('/auth/login', { email, senha });
 
       // 2. Se o seu backend devolver um token (JWT), guardamos para manter a sessão
       if (response.data.token) {
         localStorage.setItem('@Filmes:token', response.data.token);
-        api.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+        socialApi.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
       }
 
       // 3. Atualiza o estado global da sua aplicação (AuthContext)

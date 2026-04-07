@@ -4,7 +4,7 @@ import { Film, Mail, Lock, Eye, EyeOff, ArrowRight, User, Phone, KeyRound, Check
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import api from "@/services/api";
+import { socialApi } from '@/services/api';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -88,7 +88,7 @@ const Registrar = () => {
       const telefoneLimpo = telefone ? telefone.replace(/\D/g, "") : null;
 
       // Conexão com o Back-end
-      const response = await api.post('/auth/registrar', {
+      const response = await socialApi.post('/auth/registrar', {
         nome,
         email,
         telefone: telefoneLimpo,
@@ -129,7 +129,7 @@ const Registrar = () => {
     setLoading(true);
 
     try {
-      const response = await api.post('/verificar-email', { 
+      const response = await socialApi.post('/verificar-email', { 
         email, 
         codigo: code 
       });

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import api from '@/services/api';
+import { socialApi } from '@/services/api';
 import { toast } from 'sonner';
 
 interface User {
@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     if (token && storedUser) {
       try {
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        socialApi.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         setUser(JSON.parse(storedUser));
       } catch (error) {
         // Caso o JSON esteja corrompido, limpa o storage
@@ -49,14 +49,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, senha: string) => {
     try {
       // Ajuste para a sua rota exata do backend
-      const response = await api.post('auth/login', { email, senha });
+      const response = await socialApi.post('auth/login', { email, senha });
       const { token, usuario } = response.data; 
 
       if (token) {
         localStorage.setItem('@Filmes:token', token);
         localStorage.setItem('@Filmes:user', JSON.stringify(usuario));
         
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        socialApi.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         setUser(usuario);
         
         toast.success(`Bem-vindo de volta, ${usuario.nome}!`);
@@ -72,7 +72,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     localStorage.removeItem('@Filmes:token');
     localStorage.removeItem('@Filmes:user');
-    delete api.defaults.headers.common['Authorization'];
+    delete socialApi.defaults.headers.common['Authorization'];
     setUser(null);
     toast.info("Sessão encerrada com sucesso.");
   };

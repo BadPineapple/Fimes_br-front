@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Loader2, Film as FilmIcon } from "lucide-react";
 import FilmCard from "@/components/FilmCard";
-import api from "@/services/api";
+import { blogApi } from '@/services/api';
 
 const generosInfo: Record<string, { descricao: string; cor: string }> = {
   "Drama": { descricao: "Histórias profundas que exploram a condição humana, emoções e conflitos pessoais.", cor: "from-primary/80 to-primary/40" },
@@ -30,7 +30,7 @@ const GeneroDetalhe = () => {
   useEffect(() => {
     const carregar = async () => {
       try {
-        const response = await api.get("/filmes");
+        const response = await blogApi.get("/filmes");
         const todos = response.data;
         const filtrados = todos.filter((f: any) => {
           const generos = Array.isArray(f.GENEROS)

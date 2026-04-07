@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Calendar, MapPin, Clapperboard, Film, PenTool, Skull, Loader2 } from "lucide-react";
-import api from "@/services/api";
+import { blogApi } from '@/services/api';
 
 // 1. Interfaces espelhando a resposta do backend
 interface Filme {
@@ -66,7 +66,7 @@ const ArtistaDetalhe = () => {
       try {
         setLoading(true);
         // Utiliza a rota buscarPorId que criamos no pessoasController
-        const res = await api.get(`/artista/${id}`);
+        const res = await blogApi.get(`/artista/${id}`);
         setArtista(res.data);
       } catch (error) {
         console.error("Erro ao buscar detalhes do artista:", error);

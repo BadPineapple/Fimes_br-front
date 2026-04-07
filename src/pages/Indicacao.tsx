@@ -91,7 +91,7 @@ const Indicacao = () => {
                   // Fallbacks caso a API não tenha retornado esses dados na busca:
                   ANO: resultado.ANO || 0,
                   NOTEXT: resultado.NOTEXT || 0,
-                  IMG: resultado.IMG || "",
+                  IMAGEM: resultado.IMG || "",
                   GENEROS: resultado.GENEROS || []
                 }} 
               />

@@ -1,8 +1,29 @@
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, Clapperboard, Film, PenTool, Skull } from "lucide-react";
-import { artistasCompletos } from "@/data/artistas";
+import { ArrowLeft, Calendar, MapPin, Clapperboard, Film, PenTool, Skull, Loader2 } from "lucide-react";
+import api from "@/services/api";
 
-const calcularIdade = (nascimento: string, falecimento?: string) => {
+// 1. Interfaces espelhando a resposta do backend
+interface Filme {
+  titulo: string;
+  papel: string;
+  ano: number;
+}
+
+interface Artista {
+  id: string | number;
+  nome: string;
+  tipo: string;
+  nascimento: string | null;
+  falecimento: string | null;
+  naturalidade: string | null;
+  biografia: string | null;
+  filmografia: Filme[];
+}
+
+// 2. Funções auxiliares ajustadas para lidar com nulls
+const calcularIdade = (nascimento: string, falecimento?: string | null) => {
+  if (!nascimento) return 0;
   const ref = falecimento ? new Date(falecimento) : new Date();
   const nasc = new Date(nascimento);
   let idade = ref.getFullYear() - nasc.getFullYear();
@@ -11,24 +32,62 @@ const calcularIdade = (nascimento: string, falecimento?: string) => {
   return idade;
 };
 
-const formatarData = (data: string) =>
-  new Date(data + "T00:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
-
-const tipoLabel = (tipo: string) => {
-  const map: Record<string, string> = { ator: "Ator/Atriz", diretor: "Diretor(a)", roteirista: "Roteirista", ambos: "Ator & Diretor" };
-  return map[tipo] ?? tipo;
+// Ajuste seguro para lidar com datas no formato YYYY-MM-DDTHH:mm:ss.sssZ do banco
+const formatarData = (data: string | null) => {
+  if (!data) return "Não informada";
+  const apenasData = data.split("T")[0]; // Pega apenas a data "YYYY-MM-DD"
+  const [ano, mes, dia] = apenasData.split("-");
+  return new Date(Number(ano), Number(mes) - 1, Number(dia)).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
 };
 
-const tipoIcon = (tipo: string) => {
-  if (tipo === "diretor") return <Clapperboard className="w-4 h-4" />;
-  if (tipo === "roteirista") return <PenTool className="w-4 h-4" />;
+const tipoLabel = (tipo: string | null) => {
+  if (!tipo) return "Não informado";
+  const map: Record<string, string> = { ator: "Ator/Atriz", diretor: "Diretor(a)", roteirista: "Roteirista", ambos: "Ator & Diretor" };
+  return map[tipo.toLowerCase()] ?? tipo;
+};
+
+const tipoIcon = (tipo: string | null) => {
+  const t = tipo?.toLowerCase() || "";
+  if (t === "diretor") return <Clapperboard className="w-4 h-4" />;
+  if (t === "roteirista") return <PenTool className="w-4 h-4" />;
   return <Film className="w-4 h-4" />;
 };
 
 const ArtistaDetalhe = () => {
   const { id } = useParams<{ id: string }>();
-  const artista = artistasCompletos.find((a) => a.id === id);
+  
+  // 3. Gerenciamento de estado
+  const [artista, setArtista] = useState<Artista | null>(null);
+  const [loading, setLoading] = useState(true);
 
+  // 4. Busca do artista na API
+  useEffect(() => {
+    const fetchArtista = async () => {
+      try {
+        setLoading(true);
+        // Utiliza a rota buscarPorId que criamos no pessoasController
+        const res = await api.get(`/artista/${id}`);
+        setArtista(res.data);
+      } catch (error) {
+        console.error("Erro ao buscar detalhes do artista:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) fetchArtista();
+  }, [id]);
+
+  // Tela de Loading enquanto espera o backend
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-secondary" />
+      </div>
+    );
+  }
+
+  // Se o backend retornar 404
   if (!artista) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
@@ -40,7 +99,8 @@ const ArtistaDetalhe = () => {
     );
   }
 
-  const idade = calcularIdade(artista.nascimento, artista.falecimento);
+  const idade = artista.nascimento ? calcularIdade(artista.nascimento, artista.falecimento) : "?";
+  const filmografia = artista.filmografia || [];
 
   return (
     <div className="min-h-screen">
@@ -53,8 +113,8 @@ const ArtistaDetalhe = () => {
 
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
             {/* Foto / Avatar */}
-            <div className="w-36 h-36 md:w-44 md:h-44 rounded-full bg-card/20 border-4 border-secondary/40 flex items-center justify-center text-4xl font-bold text-secondary shrink-0">
-              {artista.nome.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+            <div className="w-36 h-36 md:w-44 md:h-44 rounded-full bg-card/20 border-4 border-secondary/40 flex items-center justify-center text-4xl font-bold text-secondary shrink-0 uppercase">
+              {artista.nome ? artista.nome.split(" ").map((n) => n[0]).join("").slice(0, 2) : "?"}
             </div>
 
             <div className="text-center md:text-left">
@@ -66,14 +126,20 @@ const ArtistaDetalhe = () => {
                   {tipoIcon(artista.tipo)}
                   {tipoLabel(artista.tipo)}
                 </span>
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5" />
-                  {idade} anos
-                </span>
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5" />
-                  {artista.naturalidade}
-                </span>
+                
+                {artista.nascimento && (
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5" />
+                    {idade} anos
+                  </span>
+                )}
+                
+                {artista.naturalidade && (
+                  <span className="flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5" />
+                    {artista.naturalidade}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -88,33 +154,40 @@ const ArtistaDetalhe = () => {
             {/* Biografia */}
             <section>
               <h2 className="font-display text-xl font-bold text-foreground mb-3">Biografia</h2>
-              <p className="text-muted-foreground leading-relaxed">{artista.biografia}</p>
+              <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                {artista.biografia || "Biografia não informada."}
+              </p>
             </section>
 
             {/* Filmografia */}
             <section>
               <h2 className="font-display text-xl font-bold text-foreground mb-4">
-                Filmografia ({artista.filmografia.length})
+                Filmografia ({filmografia.length})
               </h2>
-              <div className="space-y-3">
-                {artista.filmografia
-                  .sort((a, b) => b.ano - a.ano)
-                  .map((filme, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 hover:border-secondary/30 hover:shadow-card-hover transition-all"
-                    >
-                      <div className="w-12 h-16 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                        <Film className="w-5 h-5 text-muted-foreground/50" />
+              
+              {filmografia.length === 0 ? (
+                <p className="text-muted-foreground italic">Nenhum filme cadastrado para este artista.</p>
+              ) : (
+                <div className="space-y-3">
+                  {filmografia
+                    .sort((a, b) => b.ano - a.ano)
+                    .map((filme, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 hover:border-secondary/30 hover:shadow-card-hover transition-all"
+                      >
+                        <div className="w-12 h-16 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                          <Film className="w-5 h-5 text-muted-foreground/50" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-foreground text-sm">{filme.titulo}</h3>
+                          <p className="text-muted-foreground text-xs mt-0.5">{filme.papel}</p>
+                        </div>
+                        <span className="text-sm font-mono text-muted-foreground shrink-0">{filme.ano}</span>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-foreground text-sm">{filme.titulo}</h3>
-                        <p className="text-muted-foreground text-xs mt-0.5">{filme.papel}</p>
-                      </div>
-                      <span className="text-sm font-mono text-muted-foreground shrink-0">{filme.ano}</span>
-                    </div>
-                  ))}
-              </div>
+                    ))}
+                </div>
+              )}
             </section>
           </div>
 
@@ -128,11 +201,13 @@ const ArtistaDetalhe = () => {
                   <span className="text-muted-foreground">Nome completo</span>
                   <span className="text-foreground font-medium text-right">{artista.nome}</span>
                 </div>
+                
                 <div className="border-t border-border" />
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Nascimento</span>
                   <span className="text-foreground font-medium">{formatarData(artista.nascimento)}</span>
                 </div>
+                
                 <div className="border-t border-border" />
                 {artista.falecimento && (
                   <>
@@ -145,26 +220,34 @@ const ArtistaDetalhe = () => {
                     <div className="border-t border-border" />
                   </>
                 )}
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Idade</span>
-                  <span className="text-foreground font-medium">
-                    {idade} anos {artista.falecimento ? "(ao falecer)" : ""}
-                  </span>
-                </div>
-                <div className="border-t border-border" />
+                
+                {artista.nascimento && (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Idade</span>
+                      <span className="text-foreground font-medium">
+                        {idade} anos {artista.falecimento ? "(ao falecer)" : ""}
+                      </span>
+                    </div>
+                    <div className="border-t border-border" />
+                  </>
+                )}
+
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Naturalidade</span>
-                  <span className="text-foreground font-medium">{artista.naturalidade}</span>
+                  <span className="text-foreground font-medium text-right max-w-[150px]">{artista.naturalidade || "—"}</span>
                 </div>
+                
                 <div className="border-t border-border" />
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Profissão</span>
                   <span className="text-foreground font-medium">{tipoLabel(artista.tipo)}</span>
                 </div>
+                
                 <div className="border-t border-border" />
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Filmes</span>
-                  <span className="text-foreground font-medium">{artista.filmografia.length}</span>
+                  <span className="text-foreground font-medium">{filmografia.length}</span>
                 </div>
               </div>
             </div>

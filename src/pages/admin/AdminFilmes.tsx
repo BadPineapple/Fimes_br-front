@@ -103,7 +103,7 @@ const AdminFilmes = () => {
       ano: filme.ANO ? String(filme.ANO) : "",
       nota_externa: filme.NOTEXT ? String(filme.NOTEXT) : "",
       sinopse: filme.SINOPSE || "",
-      idImagem: filme.IMAGEM || null,
+      idImagem: filme.IMG || null,
       generos: Array.isArray(filme.GENEROS) ? filme.GENEROS.map((g: any) => g.NOMGEN) : (filme.GENEROS?.split(',') || []),
       diretores: filme.DIRETORES?.filter((p: any) => p.CARGO === 'Diretor').map((d: any) => d.NOMPES) || [],
       elenco: filme.DIRETORES?.filter((p: any) => p.CARGO === 'Ator').map((d: any) => d.NOMPES) || [],

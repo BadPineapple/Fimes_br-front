@@ -63,7 +63,7 @@ const FilmeDetalhe = () => {
             <div className="grid md:grid-cols-[300px_1fr] gap-8 mb-12">
               {/* Poster */}
               <div className="aspect-[2/3] rounded-xl overflow-hidden bg-card border border-border flex items-center justify-center shadow-card">
-                {filme.IMAGEM && filme.IMAGEM.length > 0 ? (
+                {filme.IMG && filme.IMAGEM.length > 0 ? (
                   <img 
                     src={`${API_BASE_URL}${filme.IMAGEM[0].LOCAL}`} 
                     alt={filme.NOMFIL} 

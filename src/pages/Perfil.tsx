@@ -276,9 +276,9 @@ const Perfil = () => {
                       onClick={() => navigate(`/filme/${filme.id}`)}
                     >
                       <div className="aspect-[2/3] bg-muted flex items-center justify-center overflow-hidden">
-                        {filme.imagem ? (
+                        {filme.IMG ? (
                           <img 
-                            src={getImageUrl(filme.imagem)} 
+                            src={getImageUrl(filme.IMG)} 
                             alt={filme.titulo} 
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform" 
                           />
@@ -318,8 +318,8 @@ const Perfil = () => {
                     onClick={() => navigate(`/filme/${v.id_filme}`)}
                   >
                     <div className="w-10 h-14 rounded bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
-                      {v.imagem ? (
-                        <img src={getImageUrl(v.imagem)} className="w-full h-full object-cover" />
+                      {v.IMG ? (
+                        <img src={getImageUrl(v.IMG)} className="w-full h-full object-cover" />
                       ) : (
                         <Film className="w-4 h-4 text-muted-foreground/30" />
                       )}
